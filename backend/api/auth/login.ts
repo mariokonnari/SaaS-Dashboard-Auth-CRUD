@@ -2,16 +2,25 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 import { login } from "../../controllers/authController";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+  // ✅ CORS HEADERS (always first)
+  res.setHeader("Access-Control-Allow-Origin", "https://saasdashboarddemo.netlify.app");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
-    try {
-        const result = await login(req.body);
+  // ✅ Handle preflight
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
-        res.setHeader("Access-Control-Allow-Origin", "*"); // adjust if needed
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
 
-        return res.status(200).json(result);
-    } catch (err: any) {
-        return res.status(400).json({ message: err.message });
-    }
+  try {
+    const user = await login(req.body);
+    return res.status(201).json(user);
+  } catch (err: any) {
+    return res.status(400).json({ message: err.message });
+  }
 }
