@@ -16,7 +16,7 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors({ origin:"http://localhost:5173", credentials: true, }));
+app.use(cors({ origin: true, credentials: true, }));
 app.use(helmet());
 app.use(cookieParser());
 app.use("/auth", authRoutes);
@@ -35,5 +35,4 @@ app.get("/admin-only", requireAuth, requireRole("ADMIN"), (req, res) => {
     res.json({message: "Admin access granted!"});
 });
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+export default app;
