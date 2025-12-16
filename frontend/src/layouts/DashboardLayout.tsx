@@ -1,18 +1,16 @@
 import React from "react";
-import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useNavigate} from "react-router-dom";
 import { LayoutDashboard, Package, Users, Receipt, LogOut, Settings, Globe } from "lucide-react";
 import SettingsModal from "../components/Settings";
 import { useTranslation } from "react-i18next";
 
 export default function DashboardLayout() {
     const navigate = useNavigate();
-    const location = useLocation();
     const role = localStorage.getItem("role");
     const isAdmin = role === "ADMIN";
     const [collapsed, setCollapsed] = React.useState(false);
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
-    const userEmail = localStorage.getItem("email") || "";
     const { i18n, t } = useTranslation();
 
     const toggleLanguage = () => {
@@ -25,12 +23,6 @@ export default function DashboardLayout() {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         navigate("/login");
-    };
-
-    const isActive = (path:string) => {
-        return location.pathname === path
-            ? "bg-gray-700 text-white"
-            : "text-gray-300";
     };
 
     return (

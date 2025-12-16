@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import "./index.css";
-import React, { type JSX } from "react";
+import type {JSX} from "react";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup"
