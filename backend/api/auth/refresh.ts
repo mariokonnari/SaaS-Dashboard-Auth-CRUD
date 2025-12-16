@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { refresh } from "../../controllers/authController";
+import { refresh } from "../../src/controllers/authController";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ✅ CORS HEADERS (always first)
