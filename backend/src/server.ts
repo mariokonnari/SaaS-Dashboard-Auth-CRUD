@@ -21,7 +21,10 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "https://saasdashboarddemo.netlify.app",
+    origin: [
+      "http://localhost:5173",
+      "https://saasdashboarddemo.netlify.app",
+    ],
     credentials: true,
   })
 );
