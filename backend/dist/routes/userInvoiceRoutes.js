@@ -1,0 +1,83 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const prisma_1 = require("../utils/prisma");
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const router = (0, express_1.Router)();
+// GET all invoices for the logged-in user
+router.get("/", authMiddleware_1.requireAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const invoices = await prisma_1.prisma.invoice.findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+            include: { user: true },
+        });
+        res.json(invoices);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+});
+// POST create a new invoice for the logged-in user
+router.post("/", authMiddleware_1.requireAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { amount, description } = req.body;
+        if (!amount || !description) {
+            return res.status(400).json({ message: "Amount and description are required" });
+        }
+        const newInvoice = await prisma_1.prisma.invoice.create({
+            data: {
+                userId,
+                amount: Number(amount),
+                description,
+            },
+        });
+        res.status(201).json(newInvoice);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Failed to create invoice" });
+    }
+});
+// PUT update an existing invoice (only own invoices)
+router.put("/:id", authMiddleware_1.requireAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+        const { amount, description } = req.body;
+        const invoice = await prisma_1.prisma.invoice.findUnique({ where: { id } });
+        if (!invoice || invoice.userId !== userId) {
+            return res.status(404).json({ message: "Invoice not found or not authorized" });
+        }
+        const updatedInvoice = await prisma_1.prisma.invoice.update({
+            where: { id },
+            data: { amount: Number(amount), description },
+        });
+        res.json(updatedInvoice);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Failed to update invoice" });
+    }
+});
+// DELETE an invoice (only own invoices)
+router.delete("/:id", authMiddleware_1.requireAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+        const invoice = await prisma_1.prisma.invoice.findUnique({ where: { id } });
+        if (!invoice || invoice.userId !== userId) {
+            return res.status(404).json({ message: "Invoice not found or not authorized" });
+        }
+        await prisma_1.prisma.invoice.delete({ where: { id } });
+        res.json({ message: "Invoice deleted successfully" });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Failed to delete invoice" });
+    }
+});
+exports.default = router;
