@@ -2,6 +2,8 @@ import { Router } from "express";
 import { prisma } from "../utils/prisma";
 import { requireAuth, requireRole } from "../middleware/authMiddleware";
 
+export const runtime = "nodejs";
+
 const router = Router();
 
 //Get all users (ADMIN ONLY)

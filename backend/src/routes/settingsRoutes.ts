@@ -3,6 +3,8 @@ import { requireAuth } from "../middleware/authMiddleware";
 import bcrypt from "bcryptjs";
 import { prisma } from "../utils/prisma";
 
+export const runtime = "nodejs";
+
 const router = Router();
 
 router.put("/", requireAuth, async (req, res) => {

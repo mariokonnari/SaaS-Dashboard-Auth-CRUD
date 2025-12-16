@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
 
+export const runtime = "nodejs";
+
 async function main() {
   // Delete old demo accounts (optional)
   await prisma.user.deleteMany({

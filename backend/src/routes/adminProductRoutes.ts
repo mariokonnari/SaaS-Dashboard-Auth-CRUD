@@ -4,6 +4,8 @@ import { requireAuth, requireRole } from "../middleware/authMiddleware";
 
 const router = Router();
 
+export const runtime = "nodejs";
+
 //Get all products (ADMIN ONLY)
 router.get("/", requireAuth, requireRole("ADMIN"), async (req, res) => {
     try {

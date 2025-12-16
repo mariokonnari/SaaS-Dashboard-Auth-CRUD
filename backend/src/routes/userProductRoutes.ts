@@ -3,6 +3,8 @@ import { prisma } from "../utils/prisma";
 import { requireAuth } from "../middleware/authMiddleware";
 import * as express from "express";
 
+export const runtime = "nodejs";
+
 declare global {
   namespace Express {
     interface Request {

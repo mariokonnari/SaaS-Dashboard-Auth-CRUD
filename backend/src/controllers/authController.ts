@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 const ACCESS_EXPIRY = "15m";
 const REFRESH_EXPIRY = "7d";
 
+export const runtime = "nodejs";
+
 export const signup = async (body: any) => {
     const { email, password, role } = body;
 

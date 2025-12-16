@@ -4,6 +4,8 @@ import { requireAuth } from "../middleware/authMiddleware";
 
 const router = Router();
 
+export const runtime = "nodejs";
+
 // GET all invoices for the logged-in user
 router.get("/", requireAuth, async (req: any, res) => {
   try {
