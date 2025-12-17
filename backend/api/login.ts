@@ -1,6 +1,6 @@
-import { handleCors } from "../../src/utils/cors";
+import { handleCors } from "../src/utils/cors";
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { signup } from "../../src/controllers/authController";
+import { login } from "../src/controllers/authController";
 
 export default async function handler(
   req: VercelRequest,
@@ -13,7 +13,7 @@ export default async function handler(
   }
 
   try {
-    const user = await signup(req.body);
+    const user = await login(req.body);
     return res.status(201).json(user);
   } catch (err: any) {
     console.error(err);
