@@ -23,7 +23,7 @@ export default function Signup() {
         }
 
         try {
-            await api.post("/signup", { email, password });
+            await api.post("/auth/signup", { email, password });
             alert("Signup successful! Please login.");
             navigate("/login");
         } catch (err: any) {

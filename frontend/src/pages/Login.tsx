@@ -11,7 +11,7 @@ export default function Login() {
     async function handleLogin(e: React.FormEvent) {
         e.preventDefault();
         try {
-            const res = await api.post("/login", { email, password });
+            const res = await api.post("/auth/login", { email, password });
 
             localStorage.setItem("token", res.data.accessToken);
             localStorage.setItem("role", res.data.user.role);
