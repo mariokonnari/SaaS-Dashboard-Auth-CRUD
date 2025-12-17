@@ -30,16 +30,16 @@ app.use(
 app.use(helmet());
 app.use(cookieParser());
 
-app.use("/auth", authRoutes);
-app.use("/admin/users", requireAuth, requireRole("ADMIN"), adminUserRoutes);
-app.use("/admin/invoices", requireAuth, requireRole("ADMIN"), adminInvoiceRoutes);
-app.use("/admin/products", requireAuth, requireRole("ADMIN"), adminProductRoutes);
-app.use("/user/products", requireAuth, requireRole("USER"), userProductRoutes);
-app.use("/user/invoices", requireAuth, requireRole("USER"), userInvoiceRoutes);
-app.use("/user/settings", requireAuth, settingsRoute);
+app.use("/api/auth", authRoutes);
+app.use("/api/admin/users", requireAuth, requireRole("ADMIN"), adminUserRoutes);
+app.use("/api/admin/invoices", requireAuth, requireRole("ADMIN"), adminInvoiceRoutes);
+app.use("/api/admin/products", requireAuth, requireRole("ADMIN"), adminProductRoutes);
+app.use("/api/user/products", requireAuth, requireRole("USER"), userProductRoutes);
+app.use("/api/user/invoices", requireAuth, requireRole("USER"), userInvoiceRoutes);
+app.use("/api/user/settings", requireAuth, settingsRoute);
 
 // TEST ROUTE (CRITICAL)
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("API is running");
 });
 
