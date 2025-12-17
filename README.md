@@ -26,7 +26,7 @@ You can use these to test the app:
 
 | Role  |       Email       | Password |
 |-------|-------------------|----------|
-| Admin |   admin@demo.com  |  admin   |
-| User  |   user@demo.com   |  user    |
+| ADMIN |   admin@demo.com  |  admin   |
+| USER  |   user@demo.com   |  user    |
 
 > Note: These accounts are for demo purposes only.
