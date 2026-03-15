@@ -106,7 +106,7 @@ export default function Signup() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6c63ff] to-[#00e5b0] flex items-center justify-center font-bold text-white text-lg">
             N
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">NexusApp</span>
+          <span className="font-bold text-white text-lg tracking-tight">Dashboard Demo App</span>
         </div>
 
         <div>
