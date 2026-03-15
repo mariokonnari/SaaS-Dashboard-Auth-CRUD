@@ -2,13 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../api/axios";
 import { useTranslation } from "react-i18next";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-}
+import type { Product } from "../types/types";
 
 const itemVariants = {
   hidden:  { opacity: 0, y: 16 },

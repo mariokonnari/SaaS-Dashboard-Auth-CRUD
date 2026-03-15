@@ -3,13 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../api/axios";
 import { useTranslation } from "react-i18next";
 import type { AxiosError } from "axios";
-
-interface User {
-  id: string;
-  email: string;
-  role: "ADMIN" | "USER";
-  createdAt: string;
-}
+import type { User } from "../types/types";
 
 const itemVariants = {
   hidden:  { y: 20, opacity: 0 },

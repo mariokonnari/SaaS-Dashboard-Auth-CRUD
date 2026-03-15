@@ -39,30 +39,9 @@ import {
 } from "recharts";
 import api from "../api/axios";
 import { useTranslation } from "react-i18next";
+import type { User, Invoice, Product } from "../types/types"
 
-interface User {
-  id: string;
-  email: string;
-  role: "ADMIN" | "USER";
-  createdAt: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: string;
-}
-
-interface Invoice {
-  id: string;
-  user: User;
-  amount: number;
-  description: string;
-  createdAt: string;
-}
-
-// ✅ KPI card config — each card has its own accent color
+// KPI card config — each card has its own accent color
 const KPI_COLORS = [
   { accent: "#6c63ff", bg: "rgba(108,99,255,0.10)", border: "rgba(108,99,255,0.2)" },
   { accent: "#00e5b0", bg: "rgba(0,229,176,0.08)",  border: "rgba(0,229,176,0.18)" },
@@ -77,7 +56,7 @@ export default function AdminDashboard() {
 
   const { t } = useTranslation();
 
-  // ✅ Number() wrapping fixes the $NaN bug — API may return strings
+  // Number() wrapping fixes the $NaN bug — API may return strings
   const totalUsers    = users.length;
   const totalProducts = products.length;
   const totalInvoices = invoices.length;
@@ -105,7 +84,7 @@ export default function AdminDashboard() {
     .slice(-7)
     .map((inv) => ({
       date:    new Date(inv.createdAt).toLocaleDateString(),
-      revenue: Number(inv.amount), // ✅ ensure number
+      revenue: Number(inv.amount), // ensure number
     }));
 
   const invoicesPerUser = users.map((user) => ({
@@ -132,7 +111,7 @@ export default function AdminDashboard() {
     { title: t("dashboard.card4"), value: `$${totalRevenue.toFixed(2)}`,        icon: "💰" },
   ];
 
-  // ✅ Shared dark tooltip style for both charts
+  // Shared dark tooltip style for both charts
   const darkTooltip = {
     backgroundColor: "#161c2e",
     border: "1px solid rgba(255,255,255,0.07)",
@@ -314,7 +293,7 @@ export default function AdminDashboard() {
                   transition={{ delay: index * 0.06 }}
                   className="border-b border-white/4 hover:bg-white/3 transition-colors duration-150"
                 >
-                  {/* ✅ Dark mono ID pill */}
+                  {/* Dark mono ID pill */}
                   <td className="p-3 text-sm">
                     <span className="font-mono text-xs bg-white/5 text-[#6b7694] px-2 py-1 rounded">
                       {inv.id.slice(0, 8)}…
