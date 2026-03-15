@@ -1,3 +1,28 @@
+// ─────────────────────────────────────────────────────────────
+// AdminDashboard.tsx — REDESIGNED (dark theme)
+//
+// CHANGES & WHY:
+//
+// 1. ALL COLORS CONVERTED TO DARK THEME — removed all bg-white,
+//    bg-gray-*, text-gray-800, from-blue-50 etc. and replaced with
+//    the same design tokens used in DashboardLayout and Login.
+//
+// 2. FIXED $NaN BUG — totalRevenue now wraps every amount in
+//    Number() so string values from the API don't break the sum.
+//
+// 3. CHART COLORS UPDATED — CartesianGrid, XAxis, YAxis, Tooltip
+//    all had light theme colors (#E5E7EB, white bg). Updated to
+//    match the dark surface.
+//
+// 4. KPI CARD GRADIENT BUG FIXED — the original had a broken
+//    template literal: `text-gray-700` was hardcoded after the
+//    gradient clip, so the gradient text never actually showed.
+//    Fixed by using inline style for the value color instead.
+//
+// 5. TABLE UPDATED — border colors, hover states, and text colors
+//    all converted to dark equivalents.
+// ─────────────────────────────────────────────────────────────
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -37,20 +62,27 @@ interface Invoice {
   createdAt: string;
 }
 
+// ✅ KPI card config — each card has its own accent color
+const KPI_COLORS = [
+  { accent: "#6c63ff", bg: "rgba(108,99,255,0.10)", border: "rgba(108,99,255,0.2)" },
+  { accent: "#00e5b0", bg: "rgba(0,229,176,0.08)",  border: "rgba(0,229,176,0.18)" },
+  { accent: "#ffd166", bg: "rgba(255,209,102,0.08)", border: "rgba(255,209,102,0.18)" },
+  { accent: "#ff6b6b", bg: "rgba(255,107,107,0.08)", border: "rgba(255,107,107,0.18)" },
+];
+
 export default function AdminDashboard() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users,    setUsers]    = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
 
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
-  // KPI numbers
-  const totalUsers = users.length;
+  // ✅ Number() wrapping fixes the $NaN bug — API may return strings
+  const totalUsers    = users.length;
   const totalProducts = products.length;
   const totalInvoices = invoices.length;
-  const totalRevenue = invoices.reduce((sum, inv) => sum + inv.amount, 0);
+  const totalRevenue  = invoices.reduce((sum, inv) => sum + Number(inv.amount), 0);
 
-  // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -69,95 +101,59 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
-  // Prepare chart data
   const revenueData = invoices
-    .slice(-7) // last 7 invoices
+    .slice(-7)
     .map((inv) => ({
-      date: new Date(inv.createdAt).toLocaleDateString(),
-      revenue: inv.amount,
+      date:    new Date(inv.createdAt).toLocaleDateString(),
+      revenue: Number(inv.amount), // ✅ ensure number
     }));
 
   const invoicesPerUser = users.map((user) => ({
-    user: user.email,
+    user:  user.email,
     count: invoices.filter((inv) => inv.user?.id === user.id).length,
   }));
 
   const recentInvoices = invoices.slice(-5).reverse();
 
-  // Animation variants
   const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
+    hidden:  { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
   } as const;
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
-    },
+    hidden:  { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } },
   } as const;
 
   const kpiCards = [
-    {
-      title: t("dashboard.card1"),
-      value: totalUsers,
-      icon: (
-        <i className="hgi-stroke hgi-user-multiple text-4xl text-blue-500"></i>
-      ),
-      gradient: "from-blue-500 to-cyan-400",
-      bgGradient: "from-blue-50 to-cyan-50",
-    },
-    {
-      title: t("dashboard.card2"),
-      value: totalProducts,
-      icon: (
-        <i className="hgi-stroke hgi-package text-4xl text-purple-500"></i>
-      ),
-      gradient: "from-purple-500 to-pink-400",
-      bgGradient: "from-purple-50 to-pink-50",
-    },
-    {
-      title: t("dashboard.card3"),
-      value: totalInvoices,
-      icon: (
-        <i className="hgi-stroke hgi-invoice-01 text-4xl text-emerald-500"></i>
-      ),
-      gradient: "from-emerald-500 to-teal-400",
-      bgGradient: "from-emerald-50 to-teal-50",
-    },
-    {
-      title: t("dashboard.card4"),
-      value: `$${Number(totalRevenue).toFixed(2)}`,
-      icon: (
-        <i className="hgi-stroke hgi-dollar-circle text-4xl text-amber-500"></i>
-      ),
-      gradient: "from-amber-500 to-orange-400",
-      bgGradient: "from-amber-50 to-orange-50",
-    },
+    { title: t("dashboard.card1"), value: totalUsers,                           icon: "👥" },
+    { title: t("dashboard.card2"), value: totalProducts,                        icon: "📦" },
+    { title: t("dashboard.card3"), value: totalInvoices,                        icon: "🧾" },
+    { title: t("dashboard.card4"), value: `$${totalRevenue.toFixed(2)}`,        icon: "💰" },
   ];
 
+  // ✅ Shared dark tooltip style for both charts
+  const darkTooltip = {
+    backgroundColor: "#161c2e",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: "10px",
+    color: "#e8eaf6",
+    fontSize: "13px",
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 p-4 md:p-8">
+    <div className="min-h-screen bg-[#0b0e17] p-4 md:p-8">
+
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
           {t("dashboard.title")}
         </h1>
-        <p className="text-gray-600 text-lg">
+        <p className="text-[#6b7694] text-base">
           {t("dashboard.h1")}
         </p>
       </motion.div>
@@ -167,31 +163,36 @@ export default function AdminDashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6"
       >
-        {kpiCards.map((card, index) => (
-          <motion.div
-            key={index}
-            variants={itemVariants}
-            whileHover={{ scale: 1.05, y: -5 }}
-            className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.bgGradient} p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-white/50 backdrop-blur-sm`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600 mb-2">
-                  {card.title}
-                </p>
-                <p className="text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${card.gradient} text-gray-700">
-                  {card.value}
-                </p>
+        {kpiCards.map((card, index) => {
+          const colors = KPI_COLORS[index];
+          return (
+            <motion.div
+              key={index}
+              variants={itemVariants}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="relative overflow-hidden rounded-2xl p-5 transition-all duration-300"
+              style={{
+                background: colors.bg,
+                border: `1px solid ${colors.border}`,
+              }}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-sm font-medium text-[#6b7694]">{card.title}</p>
+                <span className="text-2xl">{card.icon}</span>
               </div>
-              <div className="shrink-0">{card.icon}</div>
-            </div>
-            <div
-              className={`absolute -bottom-2 -right-2 w-24 h-24 bg-gradient-to-br ${card.gradient} opacity-10 rounded-full blur-2xl`}
-            ></div>
-          </motion.div>
-        ))}
+              <p className="text-3xl font-bold" style={{ color: colors.accent }}>
+                {card.value}
+              </p>
+              {/* Decorative glow blob */}
+              <div
+                className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full blur-2xl opacity-20"
+                style={{ background: colors.accent }}
+              />
+            </motion.div>
+          );
+        })}
       </motion.div>
 
       {/* Charts */}
@@ -199,103 +200,72 @@ export default function AdminDashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8"
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6"
       >
-        {/* Revenue Chart */}
+        {/* Revenue Line Chart */}
         <motion.div
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100"
+          className="rounded-2xl p-6 border border-white/7"
+          style={{ background: "#111624" }}
         >
-          <div className="flex items-center gap-3 mb-6">
-            <i className="hgi-stroke hgi-chart-line-data-03 text-3xl text-blue-500"></i>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">
-                {t("dashboard.card5.title")}
-              </h3>
-              <p className="text-sm text-gray-500">{t("dashboard.card5.h2")}</p>
-            </div>
+          <div className="mb-5">
+            <h3 className="text-base font-bold text-white">
+              {t("dashboard.card5.title")}
+            </h3>
+            <p className="text-sm text-[#6b7694]">{t("dashboard.card5.h2")}</p>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={260}>
             <LineChart data={revenueData}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                  <stop offset="5%"  stopColor="#6c63ff" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#6c63ff" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis
-                dataKey="date"
-                stroke="#6B7280"
-                style={{ fontSize: "12px" }}
-              />
-              <YAxis stroke="#6B7280" style={{ fontSize: "12px" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#FFF",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                }}
-              />
-              <Legend />
+              {/* ✅ Dark grid lines */}
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="date" stroke="#6b7694" style={{ fontSize: "11px" }} />
+              <YAxis stroke="#6b7694" style={{ fontSize: "11px" }} />
+              <Tooltip contentStyle={darkTooltip} cursor={{ stroke: "rgba(108,99,255,0.3)" }} />
+              <Legend wrapperStyle={{ color: "#6b7694", fontSize: "12px" }} />
               <Line
                 type="monotone"
                 dataKey="revenue"
-                stroke="#3B82F6"
-                strokeWidth={3}
-                dot={{ fill: "#3B82F6", r: 6 }}
-                activeDot={{ r: 8 }}
-                fill="url(#colorRevenue)"
+                stroke="#6c63ff"
+                strokeWidth={2.5}
+                dot={{ fill: "#6c63ff", r: 4, strokeWidth: 0 }}
+                activeDot={{ r: 6, fill: "#6c63ff" }}
               />
             </LineChart>
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Invoices Per User Chart */}
+        {/* Invoices Per User Bar Chart */}
         <motion.div
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100"
+          className="rounded-2xl p-6 border border-white/7"
+          style={{ background: "#111624" }}
         >
-          <div className="flex items-center gap-3 mb-6">
-            <i className="hgi-stroke hgi-bar-chart text-3xl text-emerald-500"></i>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">
-                {t("dashboard.card6.title")}
-              </h3>
-              <p className="text-sm text-gray-500">{t("dashboard.card6.h2")}</p>
-            </div>
+          <div className="mb-5">
+            <h3 className="text-base font-bold text-white">
+              {t("dashboard.card6.title")}
+            </h3>
+            <p className="text-sm text-[#6b7694]">{t("dashboard.card6.h2")}</p>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={260}>
             <BarChart data={invoicesPerUser}>
               <defs>
                 <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.9} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.6} />
+                  <stop offset="5%"  stopColor="#00e5b0" stopOpacity={0.9} />
+                  <stop offset="95%" stopColor="#00e5b0" stopOpacity={0.5} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis
-                dataKey="user"
-                stroke="#6B7280"
-                style={{ fontSize: "12px" }}
-              />
-              <YAxis stroke="#6B7280" style={{ fontSize: "12px" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#FFF",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                }}
-              />
-              <Legend />
-              <Bar
-                dataKey="count"
-                fill="url(#colorBar)"
-                radius={[8, 8, 0, 0]}
-                maxBarSize={60}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="user" stroke="#6b7694" style={{ fontSize: "11px" }} />
+              <YAxis stroke="#6b7694" style={{ fontSize: "11px" }} />
+              <Tooltip contentStyle={darkTooltip} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+              <Legend wrapperStyle={{ color: "#6b7694", fontSize: "12px" }} />
+              <Bar dataKey="count" fill="url(#colorBar)" radius={[6, 6, 0, 0]} maxBarSize={56} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -305,36 +275,32 @@ export default function AdminDashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100"
+        transition={{ delay: 0.25 }}
+        className="rounded-2xl p-6 border border-white/7"
+        style={{ background: "#111624" }}
       >
-        <div className="flex items-center gap-3 mb-6">
-          <i className="hgi-stroke hgi-invoice-02 text-3xl text-purple-500"></i>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800">
-              {t("dashboard.invoices.table.title")}
-            </h3>
-            <p className="text-sm text-gray-500">{t("dashboard.invoices.table.h2")}</p>
-          </div>
+        <div className="mb-5">
+          <h3 className="text-base font-bold text-white">
+            {t("dashboard.invoices.table.title")}
+          </h3>
+          <p className="text-sm text-[#6b7694]">{t("dashboard.invoices.table.h2")}</p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="text-left p-4 text-sm font-semibold text-gray-700">
-                  ID
-                </th>
-                <th className="text-left p-4 text-sm font-semibold text-gray-700">
+              <tr className="border-b border-white/7">
+                <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">ID</th>
+                <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">
                   {t("dashboard.invoices.table.UserEmail")}
                 </th>
-                <th className="text-left p-4 text-sm font-semibold text-gray-700">
+                <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">
                   {t("dashboard.invoices.table.Amount")}
                 </th>
-                <th className="text-left p-4 text-sm font-semibold text-gray-700">
+                <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">
                   {t("dashboard.invoices.table.Description")}
                 </th>
-                <th className="text-left p-4 text-sm font-semibold text-gray-700">
+                <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">
                   {t("dashboard.invoices.table.CreatedAt")}
                 </th>
               </tr>
@@ -343,38 +309,38 @@ export default function AdminDashboard() {
               {recentInvoices.map((inv, index) => (
                 <motion.tr
                   key={inv.id}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
+                  transition={{ delay: index * 0.06 }}
+                  className="border-b border-white/4 hover:bg-white/3 transition-colors duration-150"
                 >
-                  <td className="p-4 text-sm text-gray-600">
-                    <span className="font-mono bg-gray-100 px-2 py-1 rounded">
-                      {inv.id}
+                  {/* ✅ Dark mono ID pill */}
+                  <td className="p-3 text-sm">
+                    <span className="font-mono text-xs bg-white/5 text-[#6b7694] px-2 py-1 rounded">
+                      {inv.id.slice(0, 8)}…
                     </span>
                   </td>
-                  <td className="p-4 text-sm text-gray-800 font-medium">
+                  <td className="p-3 text-sm text-[#e8eaf6] font-medium">
                     {inv.user?.email || "Unknown"}
                   </td>
-                  <td className="p-4 text-sm">
-                    <span className="font-bold text-emerald-600 text-black">
-                      ${inv.amount ? Number(inv.amount).toFixed(2) : "0.00"}
-                    </span>
+                  <td className="p-3 text-sm font-bold text-[#00e5b0]">
+                    ${inv.amount ? Number(inv.amount).toFixed(2) : "0.00"}
                   </td>
-                  <td className="p-4 text-sm text-gray-600">
+                  <td className="p-3 text-sm text-[#6b7694]">
                     {inv.description}
                   </td>
-                  <td className="p-4 text-sm text-gray-500">
+                  <td className="p-3 text-sm text-[#6b7694]">
                     {new Date(inv.createdAt).toLocaleString()}
                   </td>
                 </motion.tr>
               ))}
             </tbody>
           </table>
+
           {recentInvoices.length === 0 && (
             <div className="text-center py-12">
-              <i className="hgi-stroke hgi-invoice-03 text-6xl text-gray-300 mb-4"></i>
-              <p className="text-gray-500">No recent invoices</p>
+              <p className="text-4xl mb-3">🧾</p>
+              <p className="text-[#6b7694]">No recent invoices</p>
             </div>
           )}
         </div>
