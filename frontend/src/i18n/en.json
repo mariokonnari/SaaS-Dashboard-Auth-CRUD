@@ -53,7 +53,7 @@
     "products.all.editbutton" : "Edit",
     "products.all.deletebutton" : "Delete",
     "products.all.admin.nomessage" : "No products available",
-    "products.all.user.nomessage" : "You have no prroducts yet",
+    "products.all.user.nomessage" : "You have no products yet",
     "users.delete.warning" : "Are you sure you want to delete this user?",
     "users.title" : "User Management",
     "users.h1" : "Manage your users and roles with ease",
