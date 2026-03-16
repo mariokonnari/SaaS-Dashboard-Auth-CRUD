@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { motion } from "framer-motion";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 interface Invoice {
   id: string;
@@ -10,7 +23,8 @@ interface Invoice {
   status?: "Paid" | "Pending" | "Overdue";
 }
 
-// Shared animation variants
+// ── Static constants outside component so they're never recreated ──
+
 const containerVariants = {
   hidden:  { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -21,11 +35,19 @@ const itemVariants = {
   visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } },
 } as const;
 
-// Status pill config
 const STATUS_CONFIG = {
   Paid:    { color: "#00e5b0", bg: "rgba(0,229,176,0.10)",   dot: "#00e5b0" },
   Pending: { color: "#ffd166", bg: "rgba(255,209,102,0.10)", dot: "#ffd166" },
   Overdue: { color: "#ff6b6b", bg: "rgba(255,107,107,0.10)", dot: "#ff6b6b" },
+};
+
+// Matches AdminDashboard's tooltip style — consistent across both dashboards
+const darkTooltip = {
+  backgroundColor: "#161c2e",
+  border: "1px solid rgba(255,255,255,0.07)",
+  borderRadius: "10px",
+  color: "#e8eaf6",
+  fontSize: "13px",
 };
 
 export default function UserDashboard() {
@@ -45,16 +67,67 @@ export default function UserDashboard() {
     })();
   }, []);
 
-  const totalSpent    = invoices.reduce((sum, inv) => sum + Number(inv.amount || 0), 0);
-  const recentInvoices = invoices.slice(-5).reverse();
-  const lastActivity   = invoices.length > 0
+  // ── Derived data ──────────────────────────────────────────────────
+
+  const totalSpent   = invoices.reduce((sum, inv) => sum + Number(inv.amount || 0), 0);
+  const paidInvoices = invoices.filter((inv) => (inv.status ?? "Pending") === "Paid");
+  const lastActivity = invoices.length > 0
     ? new Date(invoices[invoices.length - 1].createdAt).toLocaleDateString()
     : null;
 
+  // Group invoices by date and sum amounts — correct approach vs .slice(-7)
+  // Why: .slice(-7) gives last 7 *records*, not last 7 *days*.
+  // This groups all invoices by date first, then takes the last 7 unique days.
+  const spendingByDate = invoices.reduce<Record<string, number>>((acc, inv) => {
+    const date = new Date(inv.createdAt).toLocaleDateString();
+    acc[date] = (acc[date] || 0) + Number(inv.amount || 0);
+    return acc;
+  }, {});
+
+  const spendingData = Object.entries(spendingByDate)
+    .map(([date, amount]) => ({ date, amount }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(-7);
+
+  // Count invoices by status for the pie chart
+  // Why Object.entries on STATUS_CONFIG: guarantees all 3 statuses always
+  // appear in the chart even if count is 0 — no missing slices.
+  const statusData = Object.entries(STATUS_CONFIG).map(([status, config]) => ({
+    name:  status,
+    value: invoices.filter((inv) => (inv.status ?? "Pending") === status).length,
+    color: config.color,
+  }));
+
   const kpiCards = [
-    { label: "Total Invoices", value: invoices.length,        accent: "#6c63ff", bg: "rgba(108,99,255,0.10)", icon: "🧾" },
-    { label: "Total Spent",    value: `$${totalSpent.toFixed(2)}`, accent: "#00e5b0", bg: "rgba(0,229,176,0.08)",  icon: "💳" },
-    { label: "Last Activity",  value: lastActivity ?? "No activity yet", accent: "#ffd166", bg: "rgba(255,209,102,0.08)", icon: "🕐", small: !lastActivity },
+    {
+      label:  "Total Invoices",
+      value:  invoices.length,
+      accent: "#6c63ff",
+      bg:     "rgba(108,99,255,0.10)",
+      icon:   "🧾",
+    },
+    {
+      label:  "Total Spent",
+      value:  `$${totalSpent.toFixed(2)}`,
+      accent: "#00e5b0",
+      bg:     "rgba(0,229,176,0.08)",
+      icon:   "💳",
+    },
+    {
+      label:  "Paid Invoices",
+      value:  paidInvoices.length,
+      accent: "#a78bfa",
+      bg:     "rgba(167,139,250,0.08)",
+      icon:   "✅",
+    },
+    {
+      label:  "Last Activity",
+      value:  lastActivity ?? "No activity yet",
+      accent: "#ffd166",
+      bg:     "rgba(255,209,102,0.08)",
+      icon:   "🕐",
+      small:  !lastActivity,
+    },
   ];
 
   return (
@@ -72,12 +145,12 @@ export default function UserDashboard() {
         <p className="text-[#6b7694] text-base">Here's a summary of your account</p>
       </motion.div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards — now 4 across on xl, 2x2 on md */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6"
       >
         {kpiCards.map((card, i) => (
           <motion.div
@@ -105,11 +178,119 @@ export default function UserDashboard() {
         ))}
       </motion.div>
 
+      {/* Charts row */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6"
+      >
+        {/* Spending Over Time — Line Chart */}
+        <motion.div
+          variants={itemVariants}
+          className="rounded-2xl p-6 border border-white/7"
+          style={{ background: "#111624" }}
+        >
+          <div className="mb-5">
+            <h3 className="text-base font-bold text-white">Spending Over Time</h3>
+            <p className="text-sm text-[#6b7694]">Your daily spend — last 7 days</p>
+          </div>
+
+          {/* Why the empty state check: Recharts renders a blank/broken chart
+              if data is an empty array. Always guard chart renders. */}
+          {spendingData.length === 0 ? (
+            <div className="flex items-center justify-center h-[260px]">
+              <p className="text-[#6b7694]">No spending data yet</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={spendingData}>
+                <defs>
+                  <linearGradient id="userSpendGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#6c63ff" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#6c63ff" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="date" stroke="#6b7694" style={{ fontSize: "11px" }} />
+                <YAxis stroke="#6b7694" style={{ fontSize: "11px" }} />
+                <Tooltip
+                  contentStyle={darkTooltip}
+                  formatter={(value: number) => [`$${value.toFixed(2)}`, "Spent"]}
+                  cursor={{ stroke: "rgba(108,99,255,0.3)" }}
+                />
+                <Legend wrapperStyle={{ color: "#6b7694", fontSize: "12px" }} />
+                <Line
+                  type="monotone"
+                  dataKey="amount"
+                  name="Spent"
+                  stroke="#6c63ff"
+                  strokeWidth={2.5}
+                  dot={{ fill: "#6c63ff", r: 4, strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: "#6c63ff" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </motion.div>
+
+        {/* Invoice Status — Donut Chart */}
+        <motion.div
+          variants={itemVariants}
+          className="rounded-2xl p-6 border border-white/7"
+          style={{ background: "#111624" }}
+        >
+          <div className="mb-5">
+            <h3 className="text-base font-bold text-white">Invoice Status</h3>
+            <p className="text-sm text-[#6b7694]">Breakdown by payment status</p>
+          </div>
+
+          {invoices.length === 0 ? (
+            <div className="flex items-center justify-center h-[260px]">
+              <p className="text-[#6b7694]">No invoices yet</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={65}
+                  outerRadius={100}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      stroke="transparent"
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={darkTooltip}
+                  formatter={(value: number, name: string) => [value, name]}
+                />
+                {/* Custom legend so colors match STATUS_CONFIG exactly */}
+                <Legend
+                  wrapperStyle={{ fontSize: "12px" }}
+                  formatter={(value) => (
+                    <span style={{ color: "#e8eaf6" }}>{value}</span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </motion.div>
+      </motion.div>
+
       {/* Recent Invoices Table */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.25 }}
         className="rounded-2xl p-6 border border-white/7"
         style={{ background: "#111624" }}
       >
@@ -119,7 +300,6 @@ export default function UserDashboard() {
         </div>
 
         {loading ? (
-          // Loading skeleton
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-12 rounded-xl bg-white/4 animate-pulse" />
@@ -143,7 +323,7 @@ export default function UserDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentInvoices.map((inv, index) => {
+                {invoices.slice(-5).reverse().map((inv, index) => {
                   const status = inv.status ?? "Pending";
                   const sc = STATUS_CONFIG[status] ?? STATUS_CONFIG.Pending;
                   return (
