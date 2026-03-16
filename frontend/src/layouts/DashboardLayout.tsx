@@ -1,37 +1,9 @@
-// ─────────────────────────────────────────────────────────────
-// DashboardLayout.tsx — IMPROVED
-//
-// CHANGES & WHY:
-//
-// 1. EXTRACTED navItems ARRAY — The original had 4 NavLink blocks
-//    with copy-pasted className logic. An array + .map() is DRY
-//    (Don't Repeat Yourself). Add a new nav item by adding one object.
-//
-// 2. FIXED SIDEBAR COLLAPSE TOGGLE LOGIC — The original used
-//    window.innerWidth inside a click handler (an anti-pattern). In
-//    React you should respond to layout state, not query the DOM
-//    directly. Using a ref or CSS is better; here we separate the two
-//    modes cleanly.
-//
-// 3. FIXED HARDCODED EMAIL — `currentEmail="{userEmail}"` was passing
-//    a literal string. We now read the email from the JWT stored in
-//    localStorage using a simple decode helper.
-//
-// 4. EXTRACTED handleLogout — it was inline on the button. A named
-//    function is easier to read and to expand later.
-//
-// 5. DARK THEME — sidebar now uses the new design system.
-// ─────────────────────────────────────────────────────────────
-
 import { useState, useMemo } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Package, Users, Receipt, LogOut, Settings, Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SettingsModal from "../components/Settings";
 
-// Simple JWT payload decoder — no library needed.
-// atob decodes base64; JSON.parse turns it into an object.
-// We only read public payload data (email), not verify the signature.
 function decodeJwtEmail(): string {
   try {
     const token = localStorage.getItem("token");
@@ -43,7 +15,6 @@ function decodeJwtEmail(): string {
   }
 }
 
-// ✅ nav item type for type safety
 interface NavItem {
   to: string;
   label: string;
@@ -54,7 +25,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const role    = localStorage.getItem("role");
   const isAdmin = role === "ADMIN";
-  const email   = useMemo(() => decodeJwtEmail(), []); //only compute once
+  const email   = useMemo(() => decodeJwtEmail(), []);
 
   const [collapsed,      setCollapsed]      = useState(false);
   const [mobileOpen,     setMobileOpen]     = useState(false);
@@ -74,7 +45,6 @@ export default function DashboardLayout() {
     navigate("/login");
   };
 
-  // DRY nav items — add/remove one object instead of copy-pasting JSX
   const navItems: NavItem[] = [
     { to: isAdmin ? "/admin/dashboard" : "/user/dashboard", label: t("sidebar.dashboard"), icon: <LayoutDashboard size={18} /> },
     { to: isAdmin ? "/admin/products"  : "/user/products",  label: t("sidebar.products"),  icon: <Package size={18} /> },
@@ -90,25 +60,60 @@ export default function DashboardLayout() {
     }`;
 
   return (
-    <div className="flex h-screen w-full bg-[#0b0e17]">
-      {/* Language toggle — top right */}
+    <div className="flex h-screen w-full bg-[#0b0e17] overflow-hidden">
+      {/*
+        WHY overflow-hidden on the root:
+        Without it, the sidebar sliding in/out can cause a horizontal
+        scrollbar to flash on mobile during the CSS transition.
+      */}
+
+      {/* ── Top bar (mobile only) ──────────────────────────────────────
+          WHY a dedicated top bar instead of floating buttons:
+          Floating buttons (fixed top-4 left-4 / right-4) overlap page
+          content and fight each other on narrow screens. A proper top
+          bar reserves space, so page content starts below it, not under it.
+      */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-[#111624] border-b border-white/7 flex items-center justify-between px-4">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+
+        {/* App name in center so it doesn't feel empty */}
+        <span className="text-white font-semibold text-sm">
+          {isAdmin ? t("admin.sidebar.title") : t("user.sidebar.title")}
+        </span>
+
+        <button
+          onClick={toggleLanguage}
+          className="text-[#6b7694] hover:text-white px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 hover:bg-white/10 transition-colors"
+        >
+          <Globe size={14} />
+          {i18n.language === "en" ? "🇬🇷" : "🇺🇸"}
+          {/* WHY just the flag on mobile: saves space. Full label on desktop below. */}
+        </button>
+      </div>
+
+      {/* ── Language toggle (desktop only) ────────────────────────────
+          Kept as a floating button on desktop where there's room for it.
+      */}
       <button
         onClick={toggleLanguage}
-        className="fixed top-4 right-4 z-50 bg-[#111624] border border-white/7 hover:border-white/15 text-[#6b7694] hover:text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+        className="hidden md:flex fixed top-4 right-4 z-50 bg-[#111624] border border-white/7 hover:border-white/15 text-[#6b7694] hover:text-white px-3 py-1.5 rounded-lg text-sm font-medium items-center gap-2 transition-colors"
       >
         <Globe size={15} />
         {i18n.language === "en" ? "🇬🇷 Ελληνικά" : "🇺🇸 English"}
       </button>
 
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-50 bg-[#111624] border border-white/7 text-white p-2 rounded-lg"
-      >
-        <Menu size={18} />
-      </button>
-
-      {/* Sidebar */}
+      {/* ── Sidebar ───────────────────────────────────────────────────
+          WHY translate-x-0 / -translate-x-full:
+          The sidebar is always in the DOM (good for accessibility and
+          avoiding layout flashes), but visually hidden off-screen on
+          mobile until mobileOpen is true. The overlay below handles
+          closing it by clicking outside.
+      */}
       <aside
         className={`
           fixed md:relative top-0 left-0 h-screen bg-[#111624] border-r border-white/7
@@ -124,8 +129,12 @@ export default function DashboardLayout() {
           </div>
           {!collapsed && (
             <div>
-              <div className="font-bold text-white text-sm">{isAdmin ? t("admin.sidebar.title") : t("user.sidebar.title")}</div>
-              <div className="text-[10px] text-[#00e5b0] font-semibold tracking-widest uppercase">{isAdmin ? "Admin" : "User"}</div>
+              <div className="font-bold text-white text-sm">
+                {isAdmin ? t("admin.sidebar.title") : t("user.sidebar.title")}
+              </div>
+              <div className="text-[10px] text-[#00e5b0] font-semibold tracking-widest uppercase">
+                {isAdmin ? "Admin" : "User"}
+              </div>
             </div>
           )}
         </div>
@@ -138,10 +147,10 @@ export default function DashboardLayout() {
           {collapsed ? "›" : "‹"}
         </button>
 
-        {/* Mobile close */}
+        {/* Mobile close button */}
         <button
           onClick={() => setMobileOpen(false)}
-          className="md:hidden absolute top-4 right-4 text-[#6b7694]"
+          className="md:hidden absolute top-4 right-4 text-[#6b7694] hover:text-white transition-colors"
         >
           <X size={18} />
         </button>
@@ -149,10 +158,17 @@ export default function DashboardLayout() {
         {/* Nav */}
         <nav className="flex-1 p-3 space-y-1 mt-2">
           {!collapsed && (
-            <p className="text-[10px] font-semibold text-[#6b7694] px-3 pb-1 tracking-widest uppercase">Menu</p>
+            <p className="text-[10px] font-semibold text-[#6b7694] px-3 pb-1 tracking-widest uppercase">
+              Menu
+            </p>
           )}
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={navLinkClass} onClick={() => setMobileOpen(false)}>
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={navLinkClass}
+              onClick={() => setMobileOpen(false)}
+            >
               <span className="flex-shrink-0">{item.icon}</span>
               {!collapsed && <span>{item.label}</span>}
             </NavLink>
@@ -190,7 +206,7 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay — clicking outside closes the sidebar */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -198,11 +214,19 @@ export default function DashboardLayout() {
         />
       )}
 
-      {/* Settings modal */}
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} currentEmail={email} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentEmail={email}
+      />
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
+      {/* ── Main content ──────────────────────────────────────────────
+          WHY pt-14 md:pt-0:
+          On mobile the fixed top bar is 14 (h-14 = 56px). Without this
+          padding, page content starts at y=0 and gets hidden behind the
+          top bar. On md+ the top bar doesn't exist so no padding needed.
+      */}
+      <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
         <Outlet />
       </main>
     </div>
