@@ -36,6 +36,9 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import api from "../api/axios";
 import { useTranslation } from "react-i18next";
@@ -44,23 +47,32 @@ import type { User, Invoice, Product } from "../types/types"
 // KPI card config — each card has its own accent color
 const KPI_COLORS = [
   { accent: "#6c63ff", bg: "rgba(108,99,255,0.10)", border: "rgba(108,99,255,0.2)" },
-  { accent: "#00e5b0", bg: "rgba(0,229,176,0.08)",  border: "rgba(0,229,176,0.18)" },
+  { accent: "#00e5b0", bg: "rgba(0,229,176,0.08)", border: "rgba(0,229,176,0.18)" },
   { accent: "#ffd166", bg: "rgba(255,209,102,0.08)", border: "rgba(255,209,102,0.18)" },
   { accent: "#ff6b6b", bg: "rgba(255,107,107,0.08)", border: "rgba(255,107,107,0.18)" },
 ];
 
+const PIE_COLORS = ["#6c63ff", "#00e5b0", "#ffd166", "#ff6b6b", "#a78bfa", "#38bdf8"];
+
 export default function AdminDashboard() {
-  const [users,    setUsers]    = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   const { t } = useTranslation();
 
   // Number() wrapping fixes the $NaN bug — API may return strings
-  const totalUsers    = users.length;
+  const totalUsers = users.length;
   const totalProducts = products.length;
   const totalInvoices = invoices.length;
-  const totalRevenue  = invoices.reduce((sum, inv) => sum + Number(inv.amount), 0);
+  const totalRevenue = invoices.reduce((sum, inv) => sum + Number(inv.amount), 0);
+
+  const revenuePerUser = users.map((user) => ({
+    name: user.email.split("@")[0], //just the username part, looks cleaner on chart
+    value: invoices
+      .filter((inv) => inv.user?.id === user.id)
+      .reduce((sum, inv) => sum + Number(inv.amount), 0),
+  })).filter((u) => u.value > 0); // hide users with no revenue
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,32 +95,32 @@ export default function AdminDashboard() {
   const revenueData = invoices
     .slice(-7)
     .map((inv) => ({
-      date:    new Date(inv.createdAt).toLocaleDateString(),
+      date: new Date(inv.createdAt).toLocaleDateString(),
       revenue: Number(inv.amount), // ensure number
     }));
 
   const invoicesPerUser = users.map((user) => ({
-    user:  user.email,
+    user: user.email,
     count: invoices.filter((inv) => inv.user?.id === user.id).length,
   }));
 
   const recentInvoices = invoices.slice(-5).reverse();
 
   const containerVariants = {
-    hidden:  { opacity: 0 },
+    hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
   } as const;
 
   const itemVariants = {
-    hidden:  { y: 20, opacity: 0 },
+    hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } },
   } as const;
 
   const kpiCards = [
-    { title: t("dashboard.card1"), value: totalUsers,                           icon: "👥" },
-    { title: t("dashboard.card2"), value: totalProducts,                        icon: "📦" },
-    { title: t("dashboard.card3"), value: totalInvoices,                        icon: "🧾" },
-    { title: t("dashboard.card4"), value: `$${totalRevenue.toFixed(2)}`,        icon: "💰" },
+    { title: t("dashboard.card1"), value: totalUsers, icon: "👥" },
+    { title: t("dashboard.card2"), value: totalProducts, icon: "📦" },
+    { title: t("dashboard.card3"), value: totalInvoices, icon: "🧾" },
+    { title: t("dashboard.card4"), value: `$${totalRevenue.toFixed(2)}`, icon: "💰" },
   ];
 
   // Shared dark tooltip style for both charts
@@ -197,11 +209,11 @@ export default function AdminDashboard() {
             <LineChart data={revenueData}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#6c63ff" stopOpacity={0.3} />
+                  <stop offset="5%" stopColor="#6c63ff" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#6c63ff" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              {/* ✅ Dark grid lines */}
+              {/* Dark grid lines */}
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
               <XAxis dataKey="date" stroke="#6b7694" style={{ fontSize: "11px" }} />
               <YAxis stroke="#6b7694" style={{ fontSize: "11px" }} />
@@ -216,6 +228,49 @@ export default function AdminDashboard() {
                 activeDot={{ r: 6, fill: "#6c63ff" }}
               />
             </LineChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        {/* Revenue Distribution Pie Chart */}
+        <motion.div
+          variants={itemVariants}
+          className="rounded-2xl p-6 border border-white/7"
+          style={{ background: "#111624" }}
+        >
+          <div className="mb-5">
+            <h3 className="text-base font-bold text-white">Revenue Distribution</h3>
+            <p className="text-sm text-[#6b7694]">Share of total revenue per user</p>
+          </div>
+          <ResponsiveContainer width="100%" height={260}>
+            <PieChart>
+              <Pie
+                data={revenuePerUser}
+                cx="50%"
+                cy="50%"
+                innerRadius={65}   // makes it a donut — more modern than a filled pie
+                outerRadius={100}
+                paddingAngle={3}
+                dataKey="value"
+              >
+                {revenuePerUser.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={PIE_COLORS[index % PIE_COLORS.length]}
+                    stroke="transparent"
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={darkTooltip}
+                formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]}
+              />
+              <Legend
+                wrapperStyle={{ color: "#6b7694", fontSize: "12px" }}
+                formatter={(value) => (
+                  <span style={{ color: "#e8eaf6" }}>{value}</span>
+                )}
+              />
+            </PieChart>
           </ResponsiveContainer>
         </motion.div>
 
@@ -235,7 +290,7 @@ export default function AdminDashboard() {
             <BarChart data={invoicesPerUser}>
               <defs>
                 <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#00e5b0" stopOpacity={0.9} />
+                  <stop offset="5%" stopColor="#00e5b0" stopOpacity={0.9} />
                   <stop offset="95%" stopColor="#00e5b0" stopOpacity={0.5} />
                 </linearGradient>
               </defs>
