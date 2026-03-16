@@ -23,12 +23,12 @@ interface NavItem {
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
-  const role    = localStorage.getItem("role");
+  const role = localStorage.getItem("role");
   const isAdmin = role === "ADMIN";
-  const email   = useMemo(() => decodeJwtEmail(), []);
+  const email = useMemo(() => decodeJwtEmail(), []);
 
-  const [collapsed,      setCollapsed]      = useState(false);
-  const [mobileOpen,     setMobileOpen]     = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const { i18n, t } = useTranslation();
@@ -47,16 +47,15 @@ export default function DashboardLayout() {
 
   const navItems: NavItem[] = [
     { to: isAdmin ? "/admin/dashboard" : "/user/dashboard", label: t("sidebar.dashboard"), icon: <LayoutDashboard size={18} /> },
-    { to: isAdmin ? "/admin/products"  : "/user/products",  label: t("sidebar.products"),  icon: <Package size={18} /> },
-    { to: isAdmin ? "/admin/invoices"  : "/user/invoices",  label: t("sidebar.invoices"),  icon: <Receipt size={18} /> },
+    { to: isAdmin ? "/admin/products" : "/user/products", label: t("sidebar.products"), icon: <Package size={18} /> },
+    { to: isAdmin ? "/admin/invoices" : "/user/invoices", label: t("sidebar.invoices"), icon: <Receipt size={18} /> },
     ...(isAdmin ? [{ to: "/admin/users", label: t("sidebar.users"), icon: <Users size={18} /> }] : []),
   ];
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 py-2 px-3 rounded-xl text-sm transition-colors duration-150 ${
-      isActive
-        ? "bg-[#6c63ff]/15 text-[#6c63ff] font-semibold"
-        : "text-[#6b7694] hover:bg-white/5 hover:text-white"
+    `flex items-center gap-3 py-2 px-3 rounded-xl text-sm transition-colors duration-150 ${isActive
+      ? "bg-[#6c63ff]/15 text-[#6c63ff] font-semibold"
+      : "text-[#6b7694] hover:bg-white/5 hover:text-white"
     }`;
 
   return (
@@ -116,12 +115,12 @@ export default function DashboardLayout() {
       */}
       <aside
         className={`
-          fixed md:relative top-0 left-0 h-screen bg-[#111624] border-r border-white/7
+          fixed md:sticky md:top-0 md:self-start h-screen bg-[#111624] border-r border-white/7
           flex flex-col transition-all duration-300 ease-in-out z-50
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
           ${collapsed ? "md:w-16" : "md:w-60"} w-60
-        `}
-      >
+          `}
+        >
         {/* Logo */}
         <div className="p-5 border-b border-white/7 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6c63ff] to-[#00e5b0] flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
@@ -226,7 +225,7 @@ export default function DashboardLayout() {
           padding, page content starts at y=0 and gets hidden behind the
           top bar. On md+ the top bar doesn't exist so no padding needed.
       */}
-      <main className={`flex-1 overflow-y-auto pt-14 md:pt-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"}`}>
+      <main className="flex-1 overflow-y-auto pt-14 md:pt-0 min-w-0">
         <Outlet />
       </main>
     </div>
