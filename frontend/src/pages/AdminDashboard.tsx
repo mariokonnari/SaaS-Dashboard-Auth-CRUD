@@ -92,12 +92,16 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
-  const revenueData = invoices
-    .slice(-7)
-    .map((inv) => ({
-      date: new Date(inv.createdAt).toLocaleDateString(),
-      revenue: Number(inv.amount), // ensure number
-    }));
+  const revenueByDate = invoices.reduce<Record<string, number>>((acc, inv) => {
+    const date = new Date(inv.createdAt).toLocaleDateString();
+    acc[date] = (acc[date] || 0) + Number(inv.amount);
+    return acc;
+  }, {});
+
+  const revenueData =Object.entries(revenueByDate)
+    .map(([date, revenue]) => ({ date, revenue }))
+    .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(-7); // last 7 unique days
 
   const invoicesPerUser = users.map((user) => ({
     user: user.email,
