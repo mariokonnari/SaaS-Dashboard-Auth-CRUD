@@ -226,7 +226,7 @@ export default function DashboardLayout() {
           padding, page content starts at y=0 and gets hidden behind the
           top bar. On md+ the top bar doesn't exist so no padding needed.
       */}
-      <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
+      <main className={`flex-1 overflow-y-auto pt-14 md:pt-0 transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-60"}`}>
         <Outlet />
       </main>
     </div>
