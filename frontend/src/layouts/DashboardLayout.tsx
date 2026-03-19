@@ -114,7 +114,10 @@ export default function DashboardLayout() {
           closing it by clicking outside.
       */}
       <aside
-        className={`fixed top-0 left-0 h-screen bg-[#111624] border-r border-white/7 flex flex-col transition-all duration-300 ease-in-out z-50 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${collapsed ? "w-16" : "w-60"}`}
+        style={{
+          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
+        }}
+        className={`fixed top-0 left-0 h-screen bg-[#111624] border-r border-white/7 flex flex-col transition-all duration-300 ease-in-out z-50 md:translate-x-0 ${collapsed ? "w-16" : "w-60"}`}
       >
         {/* Logo */}
         <div className="p-5 border-b border-white/7 flex items-center gap-3">
