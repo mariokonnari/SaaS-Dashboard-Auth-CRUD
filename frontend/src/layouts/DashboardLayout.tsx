@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Package, Users, Receipt, LogOut, Settings, Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -30,8 +30,15 @@ export default function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const { i18n, t } = useTranslation();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "gr" : "en";
@@ -114,8 +121,10 @@ export default function DashboardLayout() {
           closing it by clicking outside.
       */}
       <aside
-        style={{ transform: mobileOpen ? "translateX(0)" : "translateX(-100%)" }}
-        className={`fixed top-0 left-0 h-screen bg-[#111624] border-r border-white/7 flex flex-col transition-transform duration-300 ease-in-out z-50 md:translate-x-0 ${collapsed ? "w-16" : "w-60"}`}
+        style={{
+          transform: (!isMobile || mobileOpen) ? "translateX(0)" : "translateX(-100%)",
+        }}
+        className={`fixed top-0 left-0 h-screen bg-[#111624] border-r border-white/7 flex flex-col transition-transform duration-300 ease-in-out z-50 ${collapsed ? "w-16" : "w-60"}`}
       >
         {/* Logo */}
         <div className="p-5 border-b border-white/7 flex items-center gap-3">
@@ -221,7 +230,18 @@ export default function DashboardLayout() {
           padding, page content starts at y=0 and gets hidden behind the
           top bar. On md+ the top bar doesn't exist so no padding needed.
       */}
-      <main className={`fixed top-0 right-0 bottom-0 overflow-y-auto pt-14 md:pt-0 transition-all duration-300 ${collapsed ? "md:left-16" : "md:left-60"} left-0`}>
+      <main
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: isMobile ? 0 : collapsed ? "4rem" : "15rem",
+          paddingTop: isMobile ? "3.5rem" : 0,
+          overflowY: "auto",
+          transition: "left 0.3s ease-in-out",
+        }}
+      >
         <Outlet />
       </main>
     </div>
