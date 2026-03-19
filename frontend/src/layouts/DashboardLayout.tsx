@@ -114,10 +114,8 @@ export default function DashboardLayout() {
           closing it by clicking outside.
       */}
       <aside
-        style={{
-          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
-        }}
-        className={`fixed top-0 left-0 h-screen bg-[#111624] border-r border-white/7 flex flex-col transition-all duration-300 ease-in-out z-50 md:translate-x-0 ${collapsed ? "w-16" : "w-60"}`}
+        style={{ transform: mobileOpen ? "translateX(0)" : "translateX(-100%)" }}
+        className={`fixed top-0 left-0 h-screen bg-[#111624] border-r border-white/7 flex flex-col transition-transform duration-300 ease-in-out z-50 md:translate-x-0 ${collapsed ? "w-16" : "w-60"}`}
       >
         {/* Logo */}
         <div className="p-5 border-b border-white/7 flex items-center gap-3">
@@ -217,16 +215,13 @@ export default function DashboardLayout() {
         currentEmail={email}
       />
 
-      {/* spacer — pushes main content right on desktop, invisible on mobile */}
-      <div className={`hidden md:block flex-shrink-0 transition-all duration-300 ${collapsed ? "w-16" : "w-60"}`} />
-
       {/* ── Main content ──────────────────────────────────────────────
           WHY pt-14 md:pt-0:
           On mobile the fixed top bar is 14 (h-14 = 56px). Without this
           padding, page content starts at y=0 and gets hidden behind the
           top bar. On md+ the top bar doesn't exist so no padding needed.
       */}
-      <main className="flex-1 overflow-y-auto pt-14 md:pt-0 min-w-0">
+      <main className={`fixed top-0 right-0 bottom-0 overflow-y-auto pt-14 md:pt-0 transition-all duration-300 ${collapsed ? "md:left-16" : "md:left-60"} left-0`}>
         <Outlet />
       </main>
     </div>
