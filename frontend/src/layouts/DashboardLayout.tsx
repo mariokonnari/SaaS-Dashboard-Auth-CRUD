@@ -114,7 +114,7 @@ export default function DashboardLayout() {
           closing it by clicking outside.
       */}
       <aside
-        className={`fixed md:sticky md:top-0 md:self-start h-screen bg-[#111624] border-r border-white/7 flex flex-col transition-all duration-300 ease-in-out z-50 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${collapsed ? "md:w-16" : "md:w-60"} w-60`}
+        className={`fixed top-0 left-0 h-screen bg-[#111624] border-r border-white/7 flex flex-col transition-all duration-300 ease-in-out z-50 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${collapsed ? "w-16" : "w-60"}`}
       >
         {/* Logo */}
         <div className="p-5 border-b border-white/7 flex items-center gap-3">
@@ -213,6 +213,9 @@ export default function DashboardLayout() {
         onClose={() => setIsSettingsOpen(false)}
         currentEmail={email}
       />
+
+      {/* spacer — pushes main content right on desktop, invisible on mobile */}
+      <div className={`hidden md:block flex-shrink-0 transition-all duration-300 ${collapsed ? "w-16" : "w-60"}`} />
 
       {/* ── Main content ──────────────────────────────────────────────
           WHY pt-14 md:pt-0:
