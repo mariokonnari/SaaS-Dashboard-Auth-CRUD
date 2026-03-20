@@ -84,6 +84,9 @@ export default function LiveActivityFeed() {
             )
             .subscribe((status) => {
                 setConnected(status === "SUBSCRIBED");
-            })
+            });
+
+            //Cleanup on unmount
+            //WHY: Without this, navigating away leaves an active WebSocket subscription
     })
 }
