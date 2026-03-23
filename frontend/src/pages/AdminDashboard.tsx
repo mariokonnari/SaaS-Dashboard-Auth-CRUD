@@ -44,6 +44,7 @@ import api from "../api/axios";
 import { useTranslation } from "react-i18next";
 import type { User, Invoice, Product } from "../types/types"
 import LiveActivityFeed from "../components/LiveActivityFeed";
+import { supabase } from "../config/supabase";
 
 // KPI card config — each card has its own accent color
 const KPI_COLORS = [
@@ -91,6 +92,26 @@ export default function AdminDashboard() {
       }
     };
     fetchData();
+
+    const channel = supabase
+      .channel("invoices-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Invoice"},
+        async () => {
+          try {
+            const res = await api.get("admin/invoices");
+            setInvoices(res.data);
+          } catch (err) {
+            console.error("Realtime refetch error:", err);
+          }
+        }
+      )
+      .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
   }, []);
 
   const revenueByDate = invoices.reduce<Record<string, number>>((acc, inv) => {
@@ -109,7 +130,7 @@ export default function AdminDashboard() {
     count: invoices.filter((inv) => inv.user?.id === user.id).length,
   }));
 
-  const recentInvoices = invoices.slice(-5).reverse();
+  const recentInvoices = invoices.slice(0, 5);
 
   const containerVariants = {
     hidden: { opacity: 0 },
