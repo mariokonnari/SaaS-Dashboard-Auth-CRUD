@@ -94,24 +94,36 @@ export default function AdminDashboard() {
     fetchData();
 
     const channel = supabase
-      .channel("invoices-realtime")
+      .channel("dashboard-realtime")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "Invoice"},
+        { event: "*", schema: "public", table: "Invoice" },
         async () => {
-          try {
-            const res = await api.get("admin/invoices");
-            setInvoices(res.data);
-          } catch (err) {
-            console.error("Realtime refetch error:", err);
-          }
+          const res = await api.get("/admin/invoices");
+          setInvoices(res.data);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Product" },
+        async () => {
+          const res = await api.get("/admin/products");
+          setProducts(res.data);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "User" },
+        async () => {
+          const res = await api.get("/admin/users");
+          setUsers(res.data);
         }
       )
       .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const revenueByDate = invoices.reduce<Record<string, number>>((acc, inv) => {
@@ -120,9 +132,9 @@ export default function AdminDashboard() {
     return acc;
   }, {});
 
-  const revenueData =Object.entries(revenueByDate)
+  const revenueData = Object.entries(revenueByDate)
     .map(([date, revenue]) => ({ date, revenue }))
-    .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(-7); // last 7 unique days
 
   const invoicesPerUser = users.map((user) => ({
