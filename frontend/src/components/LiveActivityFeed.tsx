@@ -44,7 +44,8 @@ function formatEvent(log: AuditLog): { message: string; icon: string; color: str
 }
 
 function timeAgo(dateStr: string): string {
-    const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    const date = new Date(dateStr.endsWith("Z") ? dateStr : dateStr + "Z")
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
     if (seconds < 60) return `${seconds}s ago`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     return `${Math.floor(seconds / 3600)}h ago`;
