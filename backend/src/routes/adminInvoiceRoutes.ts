@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../utils/prisma";
 import { requireAuth, requireRole } from "../middleware/authMiddleware";
+import { logAction } from "../utils/auditLog";
 
 const router = Router();
 
