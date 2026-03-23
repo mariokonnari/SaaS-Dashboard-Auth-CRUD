@@ -37,49 +37,45 @@ router.get("/user/:userId", requireAuth, requireRole("ADMIN"), async (req, res) 
     }
 });
 
-//Create invoice
+// Create invoice
 router.post("/", requireAuth, requireRole("ADMIN"), async (req, res) => {
-    const {userId, amount, description} = req.body;
-
-    try {
-        const invoice = await prisma.invoice.create({
-            data: {
-                userId,
-                amount,
-                description
-            }
-        });
-        res.json({message: "Invoice created", invoice});
-    } catch (err) {
-        res.status(500).json({message: "Failed to create invoice", error: err});
-    }
+  const { userId, amount, description } = req.body;
+  try {
+    const invoice = await prisma.invoice.create({
+      data: { userId, amount, description },
+    });
+    await logAction("CREATE", "Invoice", invoice.id, userId, { amount, description }); // ← add
+    res.json({ message: "Invoice created", invoice });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to create invoice", error: err });
+  }
 });
 
-//Update invoice
+// Update invoice
 router.put("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
-    const {userId, amount, description} = req.body;
-
-    try {
-        const updated = await prisma.invoice.update ({
-            where: {id:req.params.id},
-            data: {userId, amount, description}
-        });
-        res.json({message: "Invoice updated", invoice: updated});
-    } catch (err) {
-        res.status(500).json({message: "Failed to update invoice", error: err})
-    }
+  const { userId, amount, description } = req.body;
+  try {
+    const updated = await prisma.invoice.update({
+      where: { id: req.params.id },
+      data: { userId, amount, description },
+    });
+    await logAction("UPDATE", "Invoice", req.params.id, userId, { amount, description }); // ← add
+    res.json({ message: "Invoice updated", invoice: updated });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update invoice", error: err });
+  }
 });
 
-//DELETE invoices by ID
+// Delete invoice
 router.delete("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
-    try {
-        await prisma.invoice.delete({
-            where: { id: req.params.id },
-        });
-        res.json({message: "Invoice deleted"});
-    } catch (err) {
-        res.status(500).json({message: "Failed to delete invoices", error:err});
-    }
+  try {
+    await prisma.invoice.delete({ where: { id: req.params.id } });
+    const adminId = (req as any).user?.id;
+    await logAction("DELETE", "Invoice", req.params.id, adminId); // ← add
+    res.json({ message: "Invoice deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete invoices", error: err });
+  }
 });
 
 export default router;
