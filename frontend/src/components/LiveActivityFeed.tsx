@@ -59,7 +59,7 @@ export default function LiveActivityFeed() {
         //WHY: Realtime only gives us new events. Without this initial fetch, the feed would be empty until the first action happens.
         const fetchInitial = async () => {
             const { data } = await supabase
-                .from("Auditlog")
+                .from("AuditLog")
                 .select("*")
                 .order("createdAt", { ascending: false })
                 .limit(10);
