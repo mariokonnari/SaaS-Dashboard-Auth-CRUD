@@ -43,6 +43,7 @@ import {
 import api from "../api/axios";
 import { useTranslation } from "react-i18next";
 import type { User, Invoice, Product } from "../types/types"
+import LiveActivityFeed from "../components/LiveActivityFeed";
 
 // KPI card config — each card has its own accent color
 const KPI_COLORS = [
@@ -383,6 +384,9 @@ export default function AdminDashboard() {
           )}
         </div>
       </motion.div>
+      <div className="mt-4">
+        <LiveActivityFeed />
+      </div>
     </div>
   );
 }

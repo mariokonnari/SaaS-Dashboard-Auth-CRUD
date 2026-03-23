@@ -87,6 +87,81 @@ export default function LiveActivityFeed() {
             });
 
             //Cleanup on unmount
-            //WHY: Without this, navigating away leaves an active WebSocket subscription
-    })
+            //WHY: Without this, navigating away leaves an active WebSocket subscription running in the background - memory leak
+            return () => {
+                supabase.removeChannel(channel);
+            };
+    },[]);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="rounded-2xl p-6 border border-white/7"
+            style={{ background: "#111624" }}
+        >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+                <div>
+                    <h3 className="text-base font-bold text-white">Live Activity Feed</h3>
+                    <p className="text-sm text-[#6b7694]">Real-time system events</p>
+                </div>
+                {/* Connection status indicator */}
+                <div className="flex items-center gap-2">
+                    <span
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                            background: connected ? "#00e5b0" : "#ff6b6b",
+                            boxShadow: connected ? "0 0 6px #00e55b0" : "none",
+                        }}
+                    />
+                    <span className="text-xs text-[#6b7694]">
+                        {connected ? "Live" : "Connecting..."}
+                    </span>
+                </div>
+            </div>
+
+            {/* Feed */}
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                {logs.length === 0 ? (
+                    <div className="text-center py-10">
+                        <p className="text-3xl mb-2">📡</p>
+                        <p className="text-[#6b7694] text-sm">Waiting for activity...</p>
+                    </div>
+                ): (
+                    <AnimatePresence initial={false}>
+                        {logs.map((log) => {
+                            const { message, icon, color } = formatEvent(log);
+                            return (
+                                <motion.div
+                                    key={log.id}
+                                    initial={{ opacity: 0, x: -12, height: 0 }}
+                                    animate={{ opacity: 1, x: 0, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5"
+                                >
+                                    <span className="text-lg flex-shrink-0">{icon}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium" style={{ color }}>
+                                            {message}
+                                        </p>
+                                        {log.entityId && (
+                                            <p className="text-xs text-[#6b7694] font-mono truncate">
+                                                ID: {log.entity.slice(0, 16)}...
+                                            </p>
+                                        )}
+                                    </div>
+                                    <span className="text-xs text-[#6b7694] flex-shrink-0">
+                                        {timeAgo(log.createdAt)}
+                                    </span>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
+                )}
+            </div>
+        </motion.div>
+    );
 }
