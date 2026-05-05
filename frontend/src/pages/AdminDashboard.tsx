@@ -56,10 +56,42 @@ const KPI_COLORS = [
 
 const PIE_COLORS = ["#6c63ff", "#00e5b0", "#ffd166", "#ff6b6b", "#a78bfa", "#38bdf8"];
 
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen bg-[#0b0e17] p-4 md:p-8 animate-pulse">
+      {/* Header skeleton */}
+      <div className="mb-8 space-y-2">
+        <div className="h-9 w-56 bg-white/5 rounded-xl" />
+        <div className="h-4 w-72 bg-white/3 rounded-lg" />
+      </div>
+      {/* KPI cards skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="rounded-2xl p-5 h-28 bg-white/4 border border-white/5" />
+        ))}
+      </div>
+      {/* Chart skeletons */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="rounded-2xl h-80 bg-white/4 border border-white/5" />
+        ))}
+      </div>
+      {/* Table skeleton */}
+      <div className="rounded-2xl p-6 bg-white/4 border border-white/5 space-y-3">
+        <div className="h-5 w-40 bg-white/5 rounded-lg" />
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-10 bg-white/3 rounded-lg" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const { t } = useTranslation();
 
@@ -89,6 +121,8 @@ export default function AdminDashboard() {
         setInvoices(invoicesRes.data);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -169,6 +203,8 @@ export default function AdminDashboard() {
     color: "#e8eaf6",
     fontSize: "13px",
   };
+
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#0b0e17] p-4 md:p-8">

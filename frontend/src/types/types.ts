@@ -35,10 +35,10 @@ export interface Invoice {
   description: string;
   createdAt:   string;
   user?:       User;       // populated when admin fetches invoices
-  status?:     InvoiceStatus;
+  status:      InvoiceStatus;
 }
 
-export type InvoiceStatus = "Paid" | "Pending" | "Overdue";
+export type InvoiceStatus = "PENDING" | "PAID" | "CANCELLED";
 
 // Auth responses
 export interface LoginResponse {

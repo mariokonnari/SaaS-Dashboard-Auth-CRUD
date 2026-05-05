@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const z = require\\('zod'\\); console.log\\(z.version ?? require\\('./node_modules/zod/package.json'\\).version\\)\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\mario\\.claude\\projects\\c--Users-mario-Desktop-Projects-SaaS-Style-Dashboard--with-Auth---CRUD-\\memory"
+    ]
+  }
+}

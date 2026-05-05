@@ -77,7 +77,7 @@ describe("GET /admin/invoices", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("επιστρέφει 200 και όλα τα invoices", async () => {
+  it("returns 200 and all invoices", async () => {
     const fakeInvoices = [
       { id: "inv-1", amount: 100, description: "Test", userId: "user-1" },
       { id: "inv-2", amount: 200, description: "Test 2", userId: "user-2" },
@@ -96,7 +96,7 @@ describe("GET /admin/invoices", () => {
     });
   });
 
-  it("επιστρέφει 500 αν το prisma αποτύχει", async () => {
+  it("returns 500 if prisma fails", async () => {
     mockFindMany.mockRejectedValue(new Error("DB error"));
 
     const res = await request(adminApp).get("/admin/invoices");
@@ -110,7 +110,7 @@ describe("GET /admin/invoices/user/:userId", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("επιστρέφει invoices για συγκεκριμένο userId", async () => {
+  it("returns invoice for a specific userId", async () => {
     const fakeInvoices = [{ id: "inv-1", amount: 99, userId: "user-42" }];
     mockFindMany.mockResolvedValue(fakeInvoices);
 
@@ -126,7 +126,7 @@ describe("GET /admin/invoices/user/:userId", () => {
     });
   });
 
-  it("επιστρέφει 500 αν το prisma αποτύχει", async () => {
+  it("returns 500 if prisma fails", async () => {
     mockFindMany.mockRejectedValue(new Error("DB error"));
 
     const res = await request(adminApp).get("/admin/invoices/user/user-42");
@@ -139,7 +139,7 @@ describe("POST /admin/invoices", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("δημιουργεί invoice και καλεί logAction", async () => {
+  it("creates invoice and calls logAction", async () => {
     const fakeInvoice = { id: "inv-new", userId: "user-1", amount: 150, description: "New" };
     mockCreate.mockResolvedValue(fakeInvoice);
     mockLogAction.mockResolvedValue(undefined);
@@ -159,7 +159,7 @@ describe("POST /admin/invoices", () => {
     );
   });
 
-  it("επιστρέφει 500 αν το prisma αποτύχει", async () => {
+  it("returns 500 if prisma fails", async () => {
     mockCreate.mockRejectedValue(new Error("DB error"));
 
     const res = await request(adminApp)
@@ -175,7 +175,7 @@ describe("PUT /admin/invoices/:id", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("ενημερώνει invoice και καλεί logAction", async () => {
+  it("updates invoice and calls logAction", async () => {
     const updatedInvoice = { id: "inv-1", userId: "user-1", amount: 999, description: "Updated" };
     mockUpdate.mockResolvedValue(updatedInvoice);
     mockLogAction.mockResolvedValue(undefined);
@@ -192,7 +192,7 @@ describe("PUT /admin/invoices/:id", () => {
     );
   });
 
-  it("επιστρέφει 500 αν το prisma αποτύχει", async () => {
+  it("returns 500 if prisma fails", async () => {
     mockUpdate.mockRejectedValue(new Error("DB error"));
 
     const res = await request(adminApp)
@@ -208,7 +208,7 @@ describe("DELETE /admin/invoices/:id", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("διαγράφει invoice και καλεί logAction", async () => {
+  it("deletes invoice and calls logAction", async () => {
     mockDelete.mockResolvedValue({});
     mockLogAction.mockResolvedValue(undefined);
 
@@ -222,7 +222,7 @@ describe("DELETE /admin/invoices/:id", () => {
     );
   });
 
-  it("επιστρέφει 500 αν το prisma αποτύχει", async () => {
+  it("returns 500 if prisma fails", async () => {
     mockDelete.mockRejectedValue(new Error("DB error"));
 
     const res = await request(adminApp).delete("/admin/invoices/inv-1");
@@ -238,7 +238,7 @@ describe("GET /invoices (user)", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("επιστρέφει μόνο τα invoices του logged-in user", async () => {
+  it("returns invoices of the logged-in user only", async () => {
     const fakeInvoices = [{ id: "inv-1", userId: "admin-1", amount: 50 }];
     mockFindMany.mockResolvedValue(fakeInvoices);
 
@@ -256,7 +256,7 @@ describe("GET /invoices (user)", () => {
     });
   });
 
-  it("επιστρέφει 500 αν το prisma αποτύχει", async () => {
+  it("returns 500 if prisma fails", async () => {
     mockFindMany.mockRejectedValue(new Error("DB error"));
 
     const res = await request(userApp).get("/invoices");
@@ -270,7 +270,7 @@ describe("POST /invoices (user)", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("δημιουργεί invoice για τον logged-in user", async () => {
+  it("creates invoice for logged-in user only", async () => {
     const fakeInvoice = { id: "inv-new", userId: "admin-1", amount: 75, description: "Work" };
     mockCreate.mockResolvedValue(fakeInvoice);
 
@@ -289,7 +289,7 @@ describe("POST /invoices (user)", () => {
     });
   });
 
-  it("επιστρέφει 400 αν λείπει το amount ή το description", async () => {
+  it("returns 400 if amount or description is missing", async () => {
     // ΓΙΑΤΙ αυτό το test:
     // Ο userInvoiceRoutes έχει validation που λείπει από τον adminInvoiceRoutes. Πρέπει να βεβαιωθούμε ότι δουλεύει σωστά.
     const res = await request(userApp)
@@ -303,7 +303,7 @@ describe("POST /invoices (user)", () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it("επιστρέφει 400 αν λείπει το amount", async () => {
+  it("returns 400 if amount is missing", async () => {
     const res = await request(userApp)
       .post("/invoices")
       .send({ description: "Work" }); // λείπει το amount
@@ -312,7 +312,7 @@ describe("POST /invoices (user)", () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it("επιστρέφει 500 αν το prisma αποτύχει", async () => {
+  it("returns 500 if prisma fails", async () => {
     mockCreate.mockRejectedValue(new Error("DB error"));
 
     const res = await request(userApp)
@@ -327,7 +327,7 @@ describe("PUT /invoices/:id (user)", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("ενημερώνει invoice που ανήκει στον user", async () => {
+  it("updates user invoice", async () => {
     // Arrange — το invoice ανήκει στον logged-in user (admin-1)
     mockFindUnique.mockResolvedValue({ id: "inv-1", userId: "admin-1", amount: 50 });
     const updatedInvoice = { id: "inv-1", userId: "admin-1", amount: 200, description: "Updated" };
@@ -341,7 +341,7 @@ describe("PUT /invoices/:id (user)", () => {
     expect(res.body).toEqual(updatedInvoice);
   });
 
-  it("επιστρέφει 404 αν το invoice ανήκει σε άλλον user", async () => {
+  it("returns 404 if invoice belongs to other user", async () => {
     // ΓΙΑΤΙ αυτό το test είναι κρίσιμο για ασφάλεια:
     // Ένας user ΔΕΝ πρέπει να μπορεί να επεξεργαστεί invoice άλλου user. Ο κώδικας ελέγχει invoice.userId !== userId — αυτό το test το επαληθεύει.
     mockFindUnique.mockResolvedValue({
@@ -361,7 +361,7 @@ describe("PUT /invoices/:id (user)", () => {
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 
-  it("επιστρέφει 404 αν το invoice δεν υπάρχει", async () => {
+  it("returns 404 if invoice doesn't exist", async () => {
     mockFindUnique.mockResolvedValue(null); // δεν βρέθηκε
 
     const res = await request(userApp)
@@ -377,7 +377,7 @@ describe("DELETE /invoices/:id (user)", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it("διαγράφει invoice που ανήκει στον user", async () => {
+  it("deletes user invoice", async () => {
     mockFindUnique.mockResolvedValue({ id: "inv-1", userId: "admin-1" });
     mockDelete.mockResolvedValue({});
 
@@ -387,7 +387,7 @@ describe("DELETE /invoices/:id (user)", () => {
     expect(res.body).toEqual({ message: "Invoice deleted successfully" });
   });
 
-  it("επιστρέφει 404 αν το invoice ανήκει σε άλλον user", async () => {
+  it("returns 404 if invoice belongs to another user", async () => {
     // ΓΙΑΤΙ αυτό το test είναι κρίσιμο για ασφάλεια:
     // Ένας user ΔΕΝ πρέπει να μπορεί να διαγράψει invoice άλλου user.
     mockFindUnique.mockResolvedValue({
@@ -404,7 +404,7 @@ describe("DELETE /invoices/:id (user)", () => {
     expect(mockDelete).not.toHaveBeenCalled();
   });
 
-  it("επιστρέφει 404 αν το invoice δεν υπάρχει", async () => {
+  it("returns 404 if invoice doesn't exist", async () => {
     mockFindUnique.mockResolvedValue(null);
 
     const res = await request(userApp).delete("/invoices/nonexistent-id");
@@ -413,7 +413,7 @@ describe("DELETE /invoices/:id (user)", () => {
     expect(mockDelete).not.toHaveBeenCalled();
   });
 
-  it("επιστρέφει 500 αν το prisma αποτύχει", async () => {
+  it("returns 500 if prisma fails", async () => {
     mockFindUnique.mockRejectedValue(new Error("DB error"));
 
     const res = await request(userApp).delete("/invoices/inv-1");

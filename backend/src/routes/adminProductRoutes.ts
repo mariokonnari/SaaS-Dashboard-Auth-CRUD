@@ -2,23 +2,23 @@ import { Router } from "express";
 import { prisma } from "../utils/prisma";
 import { requireAuth, requireRole } from "../middleware/authMiddleware";
 import { logAction } from "../utils/auditLog";
+import { validate } from "../middleware/validate";
+import { productSchema } from "../schemas";
 
 const router = Router();
 export const runtime = "nodejs";
 
-// Get all products
 router.get("/", requireAuth, requireRole("ADMIN"), async (req, res) => {
   try {
     const products = await prisma.product.findMany({
       orderBy: { createdAt: "desc" },
     });
     res.json(products);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Failed to fetch products" });
   }
 });
 
-// Get a single product by ID
 router.get("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
   try {
     const product = await prisma.product.findUnique({
@@ -26,53 +26,46 @@ router.get("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
     });
     if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch product", error: err });
+  } catch {
+    res.status(500).json({ message: "Failed to fetch product" });
   }
 });
 
-// Create a new product
-router.post("/", requireAuth, requireRole("ADMIN"), async (req, res) => {
+router.post("/", requireAuth, requireRole("ADMIN"), validate(productSchema), async (req, res) => {
+  if (!req.user) return res.status(401).json({ message: "Not authenticated" });
   const { name, description, price } = req.body;
-  if (!req.user) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
   try {
     const product = await prisma.product.create({
       data: { name, description, price, user: { connect: { id: req.user.id } } },
     });
-    await logAction("CREATE", "Product", product.id, req.user.id, { name, price }); // ← added
+    await logAction("CREATE", "Product", product.id, req.user.id, { name, price });
     res.status(201).json({ message: "Product created", product });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to create product", error: err });
+  } catch {
+    res.status(500).json({ message: "Failed to create product" });
   }
 });
 
-// Update a product
-router.put("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
+router.put("/:id", requireAuth, requireRole("ADMIN"), validate(productSchema), async (req, res) => {
   const { name, description, price } = req.body;
   try {
     const updated = await prisma.product.update({
       where: { id: req.params.id },
       data: { name, description, price },
     });
-    const adminId = (req as any).user?.id;
-    await logAction("UPDATE", "Product", req.params.id, adminId, { name, price }); // ← added
+    await logAction("UPDATE", "Product", req.params.id, req.user!.id, { name, price });
     res.json({ message: "Product updated", product: updated });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to update product", error: err });
+  } catch {
+    res.status(500).json({ message: "Failed to update product" });
   }
 });
 
-// Delete a product
 router.delete("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
   try {
     await prisma.product.delete({ where: { id: req.params.id } });
-    const adminId = (req as any).user?.id;
-    await logAction("DELETE", "Product", req.params.id, adminId); // ← added
+    await logAction("DELETE", "Product", req.params.id, req.user!.id);
     res.json({ message: "Product deleted" });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to delete product", error: err });
+  } catch {
+    res.status(500).json({ message: "Failed to delete product" });
   }
 });
 

@@ -2,79 +2,72 @@ import { Router } from "express";
 import { prisma } from "../utils/prisma";
 import { requireAuth, requireRole } from "../middleware/authMiddleware";
 import { logAction } from "../utils/auditLog";
+import { validate } from "../middleware/validate";
+import { invoiceSchema } from "../schemas";
 
 const router = Router();
-
 export const runtime = "nodejs";
 
-//GET all invoices (ADMIN ONLY)
 router.get("/", requireAuth, requireRole("ADMIN"), async (req, res) => {
-    try {
-        const invoices = await prisma.invoice.findMany({
-            include: {
-                user: {
-                    select: { id: true, email: true, role: true }
-                }
-            },
-            orderBy: {createdAt: "desc"}
-        });
-        res.json(invoices);
-    } catch (err) {
-        res.status(500).json({message: "Failed to fetch invoices", error: err});
-    }
+  try {
+    const invoices = await prisma.invoice.findMany({
+      include: {
+        user: { select: { id: true, email: true, role: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(invoices);
+  } catch {
+    res.status(500).json({ message: "Failed to fetch invoices" });
+  }
 });
 
-//GET invoices by user ID (filter)
 router.get("/user/:userId", requireAuth, requireRole("ADMIN"), async (req, res) => {
-    try {
-        const invoices = await prisma.invoice.findMany({
-            where: { userId: req.params.userId },
-            orderBy: {createdAt: "desc"}
-        });
-        res.json(invoices);
-    } catch (err) {
-        res.status(500).json({message: "Failed to fetch invoices", error:err});
-    }
+  try {
+    const invoices = await prisma.invoice.findMany({
+      where: { userId: req.params.userId },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(invoices);
+  } catch {
+    res.status(500).json({ message: "Failed to fetch invoices" });
+  }
 });
 
-// Create invoice
-router.post("/", requireAuth, requireRole("ADMIN"), async (req, res) => {
+router.post("/", requireAuth, requireRole("ADMIN"), validate(invoiceSchema), async (req, res) => {
   const { userId, amount, description } = req.body;
   try {
     const invoice = await prisma.invoice.create({
       data: { userId, amount, description },
     });
-    await logAction("CREATE", "Invoice", invoice.id, userId, { amount, description }); // ← add
-    res.json({ message: "Invoice created", invoice });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to create invoice", error: err });
+    await logAction("CREATE", "Invoice", invoice.id, req.user!.id, { amount, description });
+    res.status(201).json({ message: "Invoice created", invoice });
+  } catch {
+    res.status(500).json({ message: "Failed to create invoice" });
   }
 });
 
-// Update invoice
-router.put("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
-  const { userId, amount, description } = req.body;
+router.put("/:id", requireAuth, requireRole("ADMIN"), validate(invoiceSchema), async (req, res) => {
+  const { userId, amount, description, status } = req.body;
   try {
     const updated = await prisma.invoice.update({
       where: { id: req.params.id },
-      data: { userId, amount, description },
+      data: { userId, amount, description, ...(status && { status }) },
     });
-    await logAction("UPDATE", "Invoice", req.params.id, userId, { amount, description }); // ← add
+    await logAction("UPDATE", "Invoice", req.params.id, req.user!.id, { amount, description, status });
     res.json({ message: "Invoice updated", invoice: updated });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to update invoice", error: err });
+  } catch {
+    res.status(500).json({ message: "Failed to update invoice" });
   }
 });
 
-// Delete invoice
 router.delete("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
   try {
     await prisma.invoice.delete({ where: { id: req.params.id } });
-    const adminId = (req as any).user?.id;
-    await logAction("DELETE", "Invoice", req.params.id, adminId); // ← add
+    await logAction("DELETE", "Invoice", req.params.id, req.user!.id);
     res.json({ message: "Invoice deleted" });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to delete invoices", error: err });
+  } catch {
+    res.status(500).json({ message: "Failed to delete invoice" });
   }
 });
 
