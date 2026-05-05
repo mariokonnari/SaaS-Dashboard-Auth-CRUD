@@ -24,9 +24,9 @@ interface Invoice {
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; bg: string; color: string; dot: string }> = {
-  PENDING:   { label: "Pending",   bg: "rgba(255,209,102,0.10)", color: "#ffd166", dot: "#ffd166" },
-  PAID:      { label: "Paid",      bg: "rgba(0,229,176,0.10)",   color: "#00e5b0", dot: "#00e5b0" },
-  CANCELLED: { label: "Cancelled", bg: "rgba(255,107,107,0.10)", color: "#ff6b6b", dot: "#ff6b6b" },
+  PENDING:   { label: "Pending",   bg: "rgba(255,209,102,0.10)", color: "#f59e0b", dot: "#f59e0b" },
+  PAID:      { label: "Paid",      bg: "rgba(0,229,176,0.10)",   color: "#10b981", dot: "#10b981" },
+  CANCELLED: { label: "Cancelled", bg: "rgba(255,107,107,0.10)", color: "#ef4444", dot: "#ef4444" },
 };
 
 function StatusBadge({ status }: { status: InvoiceStatus }) {
@@ -44,9 +44,9 @@ function StatusBadge({ status }: { status: InvoiceStatus }) {
 
 // ── Shared input styles ───────────────────────────────────────────────────────
 const inputClass =
-  "w-full bg-[#161c2e] border border-white/7 text-white placeholder-[#6b7694] px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-[#6c63ff] transition-colors";
+  "w-full bg-[#161618] border border-[#27272a] text-white placeholder-[#71717a] px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-[#3b82f6] transition-colors";
 const selectClass =
-  "w-full bg-[#161c2e] border border-white/7 text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-[#6c63ff] transition-colors appearance-none";
+  "w-full bg-[#161618] border border-[#27272a] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none";
 
 const itemVariants = {
   hidden:  { y: 20, opacity: 0 },
@@ -201,7 +201,7 @@ export default function Invoices() {
 
   // ── Loading / error states ──────────────────────────────────────────────────
   if (loading) return (
-    <div className="min-h-screen bg-[#0b0e17] flex items-center justify-center">
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
       <div className="space-y-3 w-full max-w-2xl px-8">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="h-12 rounded-xl bg-white/4 animate-pulse" />
@@ -211,17 +211,17 @@ export default function Invoices() {
   );
 
   if (error) return (
-    <div className="min-h-screen bg-[#0b0e17] flex items-center justify-center">
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
       <div className="text-center">
         <p className="text-4xl mb-3">⚠️</p>
-        <p className="text-[#ff6b6b] font-medium">{error}</p>
+        <p className="text-[#ef4444] font-medium">{error}</p>
       </div>
     </div>
   );
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#0b0e17] p-4 md:p-8">
+    <div className="min-h-screen bg-[#09090b] p-4 md:p-8">
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}>
 
         {/* Header */}
@@ -230,15 +230,15 @@ export default function Invoices() {
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
               {t("invoices.title")}
             </h1>
-            <p className="text-[#6b7694] text-base">{t("invoices.h1")}</p>
+            <p className="text-[#71717a] text-base">{t("invoices.h1")}</p>
           </div>
           {invoices.length > 0 && (
             <div
               className="rounded-2xl px-5 py-3 border text-right flex-shrink-0"
               style={{ background: "rgba(0,229,176,0.08)", borderColor: "rgba(0,229,176,0.18)" }}
             >
-              <p className="text-xs text-[#6b7694] mb-0.5">Total Revenue</p>
-              <p className="text-xl font-bold" style={{ color: "#00e5b0" }}>
+              <p className="text-xs text-[#71717a] mb-0.5">Total Revenue</p>
+              <p className="text-xl font-bold" style={{ color: "#10b981" }}>
                 ${totalRevenue.toFixed(2)}
               </p>
             </div>
@@ -252,7 +252,7 @@ export default function Invoices() {
           animate="visible"
           className="rounded-2xl p-6 border mb-6"
           style={{
-            background: "#111624",
+            background: "#111113",
             borderColor: editId ? "rgba(108,99,255,0.35)" : "rgba(255,255,255,0.07)",
           }}
         >
@@ -261,12 +261,12 @@ export default function Invoices() {
               <h3 className="text-base font-bold text-white">
                 {editId ? t("invoices.add.updatebutton") : t("invoices.add.addbutton")}
               </h3>
-              <p className="text-sm text-[#6b7694] mt-0.5">Fill in the details below</p>
+              <p className="text-sm text-[#71717a] mt-0.5">Fill in the details below</p>
             </div>
             {editId && (
               <span
                 className="text-xs font-semibold px-3 py-1 rounded-full"
-                style={{ background: "rgba(108,99,255,0.15)", color: "#6c63ff" }}
+                style={{ background: "rgba(108,99,255,0.15)", color: "#3b82f6" }}
               >
                 ✏️ Editing
               </span>
@@ -278,7 +278,7 @@ export default function Invoices() {
               <motion.p
                 initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 className="text-sm mb-4 px-4 py-2 rounded-xl"
-                style={{ color: "#ff6b6b", background: "rgba(255,107,107,0.08)", border: "1px solid rgba(255,107,107,0.2)" }}
+                style={{ color: "#ef4444", background: "rgba(255,107,107,0.08)", border: "1px solid rgba(255,107,107,0.2)" }}
               >
                 {formError}
               </motion.p>
@@ -288,7 +288,7 @@ export default function Invoices() {
           <div className={`grid grid-cols-1 gap-4 mb-4 ${isAdmin ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
             {isAdmin && (
               <div>
-                <label className="text-xs font-medium text-[#6b7694] block mb-1.5 tracking-wide uppercase">User</label>
+                <label className="text-xs font-medium text-[#71717a] block mb-1.5 tracking-wide uppercase">User</label>
                 <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className={selectClass}>
                   <option value="">{t("invoices.add.selectuser.placeholder")}</option>
                   {users.map((u) => (
@@ -298,7 +298,7 @@ export default function Invoices() {
               </div>
             )}
             <div>
-              <label className="text-xs font-medium text-[#6b7694] block mb-1.5 tracking-wide uppercase">Amount ($)</label>
+              <label className="text-xs font-medium text-[#71717a] block mb-1.5 tracking-wide uppercase">Amount ($)</label>
               <input
                 type="number"
                 placeholder={t("invoices.add.amount.placeholder")}
@@ -308,7 +308,7 @@ export default function Invoices() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-[#6b7694] block mb-1.5 tracking-wide uppercase">Description</label>
+              <label className="text-xs font-medium text-[#71717a] block mb-1.5 tracking-wide uppercase">Description</label>
               <input
                 type="text"
                 placeholder={t("invoices.add.description.placeholder")}
@@ -318,7 +318,7 @@ export default function Invoices() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-[#6b7694] block mb-1.5 tracking-wide uppercase">Status</label>
+              <label className="text-xs font-medium text-[#71717a] block mb-1.5 tracking-wide uppercase">Status</label>
               <select value={status} onChange={(e) => setStatus(e.target.value as InvoiceStatus)} className={selectClass}>
                 <option value="PENDING">Pending</option>
                 <option value="PAID">Paid</option>
@@ -332,14 +332,14 @@ export default function Invoices() {
                     whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.97 }}
                     onClick={handleUpdate}
                     className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
-                    style={{ background: "#6c63ff" }}
+                    style={{ background: "#3b82f6" }}
                   >
                     {t("invoices.add.updatebutton")}
                   </motion.button>
                   <motion.button
                     whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.97 }}
                     onClick={resetForm}
-                    className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#6b7694] border border-white/7 hover:border-white/15 transition-colors"
+                    className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#71717a] border border-[#27272a] hover:border-white/15 transition-colors"
                   >
                     {t("invoices.add.cancelbutton")}
                   </motion.button>
@@ -349,7 +349,7 @@ export default function Invoices() {
                   whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.97 }}
                   onClick={handleCreate}
                   className="w-full py-2.5 rounded-xl text-sm font-semibold text-white"
-                  style={{ background: "#6c63ff" }}
+                  style={{ background: "#3b82f6" }}
                 >
                   + {t("invoices.add.addbutton")}
                 </motion.button>
@@ -363,13 +363,13 @@ export default function Invoices() {
           variants={itemVariants}
           initial="hidden"
           animate="visible"
-          className="rounded-2xl p-6 border border-white/7"
-          style={{ background: "#111624" }}
+          className="rounded-2xl p-6 border border-[#27272a]"
+          style={{ background: "#111113" }}
         >
           <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
             <div>
               <h3 className="text-base font-bold text-white">{t("invoices.table.title")}</h3>
-              <p className="text-sm text-[#6b7694] mt-0.5">
+              <p className="text-sm text-[#71717a] mt-0.5">
                 {filteredInvoices.length}{" "}
                 {filteredInvoices.length !== 1 ? t("invoices.table.h2.plural") : t("invoices.table.h2")}
               </p>
@@ -384,8 +384,8 @@ export default function Invoices() {
                   className="text-xs font-semibold px-3 py-1.5 rounded-full transition-all"
                   style={
                     filterStatus === s
-                      ? { background: "rgba(108,99,255,0.20)", color: "#6c63ff", border: "1px solid rgba(108,99,255,0.35)" }
-                      : { background: "rgba(255,255,255,0.04)", color: "#6b7694", border: "1px solid rgba(255,255,255,0.07)" }
+                      ? { background: "rgba(108,99,255,0.20)", color: "#3b82f6", border: "1px solid rgba(108,99,255,0.35)" }
+                      : { background: "rgba(255,255,255,0.04)", color: "#71717a", border: "1px solid rgba(255,255,255,0.07)" }
                   }
                 >
                   {s === "ALL" ? "All" : STATUS_CONFIG[s].label}
@@ -398,13 +398,13 @@ export default function Invoices() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/7">
-                  <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">ID</th>
-                  {isAdmin && <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">{t("invoices.table.useremail")}</th>}
-                  <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">{t("invoices.table.amount")}</th>
-                  <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">{t("invoices.table.description")}</th>
-                  <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">Status</th>
-                  <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">{t("invoices.table.createdat")}</th>
-                  <th className="text-left p-3 text-xs font-semibold text-[#6b7694] uppercase tracking-wider">{t("invoices.table.actions")}</th>
+                  <th className="text-left p-3 text-xs font-semibold text-[#71717a] uppercase tracking-wider">ID</th>
+                  {isAdmin && <th className="text-left p-3 text-xs font-semibold text-[#71717a] uppercase tracking-wider">{t("invoices.table.useremail")}</th>}
+                  <th className="text-left p-3 text-xs font-semibold text-[#71717a] uppercase tracking-wider">{t("invoices.table.amount")}</th>
+                  <th className="text-left p-3 text-xs font-semibold text-[#71717a] uppercase tracking-wider">{t("invoices.table.description")}</th>
+                  <th className="text-left p-3 text-xs font-semibold text-[#71717a] uppercase tracking-wider">Status</th>
+                  <th className="text-left p-3 text-xs font-semibold text-[#71717a] uppercase tracking-wider">{t("invoices.table.createdat")}</th>
+                  <th className="text-left p-3 text-xs font-semibold text-[#71717a] uppercase tracking-wider">{t("invoices.table.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -416,10 +416,10 @@ export default function Invoices() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 16 }}
                       transition={{ delay: index * 0.03 }}
-                      className="border-b border-white/4 hover:bg-white/3 transition-colors duration-150"
+                      className="border-b border-[#1c1c1e] hover:bg-[#161618] transition-colors duration-150"
                     >
                       <td className="p-3 text-sm">
-                        <span className="font-mono text-xs bg-white/5 text-[#6b7694] px-2 py-1 rounded">
+                        <span className="font-mono text-xs bg-white/5 text-[#71717a] px-2 py-1 rounded">
                           {inv.id.slice(0, 8)}…
                         </span>
                       </td>
@@ -428,14 +428,14 @@ export default function Invoices() {
                           {inv.user?.email || "Unknown"}
                         </td>
                       )}
-                      <td className="p-3 text-sm font-bold" style={{ color: "#00e5b0" }}>
+                      <td className="p-3 text-sm font-bold" style={{ color: "#10b981" }}>
                         ${inv.amount != null ? Number(inv.amount).toFixed(2) : "0.00"}
                       </td>
-                      <td className="p-3 text-sm text-[#6b7694]">{inv.description}</td>
+                      <td className="p-3 text-sm text-[#71717a]">{inv.description}</td>
                       <td className="p-3">
                         <StatusBadge status={inv.status ?? "PENDING"} />
                       </td>
-                      <td className="p-3 text-sm text-[#6b7694]">
+                      <td className="p-3 text-sm text-[#71717a]">
                         {new Date(inv.createdAt).toLocaleDateString()}
                       </td>
                       <td className="p-3">
@@ -443,14 +443,14 @@ export default function Invoices() {
                           <button
                             onClick={() => loadInvoiceForEdit(inv)}
                             className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
-                            style={{ background: "rgba(255,209,102,0.10)", color: "#ffd166" }}
+                            style={{ background: "rgba(255,209,102,0.10)", color: "#f59e0b" }}
                           >
                             {t("invoices.table.actions.editbutton")}
                           </button>
                           <button
                             onClick={() => setDeleteTarget(inv.id)}
                             className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
-                            style={{ background: "rgba(255,107,107,0.10)", color: "#ff6b6b" }}
+                            style={{ background: "rgba(255,107,107,0.10)", color: "#ef4444" }}
                           >
                             {t("invoices.table.actions.deletebutton")}
                           </button>
@@ -465,13 +465,13 @@ export default function Invoices() {
             {filteredInvoices.length === 0 && (
               <div className="text-center py-14">
                 <p className="text-4xl mb-3">🧾</p>
-                <p className="text-[#6b7694]">
+                <p className="text-[#71717a]">
                   {filterStatus !== "ALL"
                     ? `No ${STATUS_CONFIG[filterStatus].label.toLowerCase()} invoices`
                     : t("invoices.table.nomessage")}
                 </p>
                 {filterStatus === "ALL" && (
-                  <p className="text-sm text-[#6b7694]/60 mt-1">{t("invoices.table.addmessage")}</p>
+                  <p className="text-sm text-[#71717a]/60 mt-1">{t("invoices.table.addmessage")}</p>
                 )}
               </div>
             )}
